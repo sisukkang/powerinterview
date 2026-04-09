@@ -285,7 +285,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#f1f5f9;min-height:100vh}
 
 <div class="ai-loading-ov" id="aiLoadingOv">
   <div class="ai-loading-spinner"></div>
-  <div class="ai-loading-text" id="aiLoadingTxt">🤖 AI가 전체 응답 내용을 분석하고 있습니다...</div>
+  <div class="ai-loading-text" id="aiLoadingTxt">🤖 AI가 응답 내용을 분석하고 있습니다...</div>
   <div style="font-size: 0.95rem; color: #93c5fd; margin-top: 10px;">데이터 양에 따라 시간이 다소 소요될 수 있습니다.</div>
 </div>
 
@@ -814,6 +814,7 @@ function renderQ(customQ = null){
   updateProgressList();
 }
 
+// 🚨 네비게이션 제어 로직 (검토 모드에 따라 하단 메뉴 통째로 노출 제어)
 function updateNavButtons() {
   const btnSubGroup = document.getElementById("btnSubGroup");
 
@@ -824,6 +825,7 @@ function updateNavButtons() {
     document.getElementById("endBtn").style.display = "inline-block";
     document.getElementById("scTtl").innerText = "자유롭게 클릭하여 문항 이동";
   } else {
+    // 정규 진행 중에는 하단 보조 메뉴를 완전히 숨겨서 순차 진행(제출)만 강제함
     btnSubGroup.style.display = "none"; 
     document.getElementById("scTtl").innerText = "진행 중 (모든 질문 완료 후 이동 가능)";
   }
@@ -982,8 +984,8 @@ if(speechSynthesis.onvoiceschanged!==undefined) speechSynthesis.onvoiceschanged=
 function speak(txt,cb){
   if(!S.synth){if(cb)cb();return;}
   S.synth.cancel();
-  S.isSpeaking = false;
-  if(!txt.trim()) {if(cb)cb();return;} 
+  S.isSpeaking = true; 
+  if(!txt.trim()) { S.isSpeaking = false; if(cb)cb(); return; } 
   
   const u=new SpeechSynthesisUtterance(txt);
   u.lang="ko-KR";u.rate=0.95; 
@@ -1009,7 +1011,6 @@ function speak(txt,cb){
   }
   
   window.__currUtter=u; 
-  S.isSpeaking = true;
   let isEnded=false;
   
   const endFunc = () => {
@@ -1104,7 +1105,7 @@ function checkMissingAndFinish() {
   });
 
   if (missing !== -1) {
-    showToast("누락되거나 응답하지 않은 질문이 있습니다. 해당 질문으로 자동 이동합니다.");
+    showToast("응답하지 않은 질문이 있습니다. 해당 질문으로 자동 이동합니다.");
     S.cur = missing;
     renderQ();
   } else {
@@ -1153,7 +1154,7 @@ function updateProg(){
 }
 
 // ══════════════════════════════════════
-// AI 분석 연동 및 결과 처리
+// AI 분석 연동 및 결과 처리 (보정 프롬프트 적용)
 // ══════════════════════════════════════
 async function startBatchAnalysis() {
   document.getElementById('readyAnalysisOv').style.display = 'none';
@@ -1168,7 +1169,9 @@ async function startBatchAnalysis() {
     
     const r = await analyzeAns(ans, ans.answer);
     if (r) {
-      S.analysisLogs.push({q: {id: ans.qId, txt: ans.question}, txt: ans.answer, res: r});
+      // AI가 교정한 텍스트(corrected_text)가 있으면 우선적으로 적용
+      const finalText = r.corrected_text ? r.corrected_text : ans.answer;
+      S.analysisLogs.push({q: {id: ans.qId, txt: ans.question}, txt: finalText, res: r});
       ans.analysisComplete = true; 
     }
   }
@@ -1187,11 +1190,15 @@ async function startBatchAnalysis() {
 async function analyzeAns(q, t) {
   const is = q.issues && q.issues.length > 0 ? `관련 이슈: ${q.issues.join(", ")}` : "종합 질문";
   const p = `당신은 한일시멘트 ESG 이중 중대성 평가 전문가입니다.
-[질문] ${q.question}\n[응답] ${t}\n[${is}]\n3점(高): 재무제표 직접 영향, 2점(中): 통제 가능, 1점(低): 영향 미미
-JSON만 응답: {"score":1또는2또는3,"affected_issues":["코드"],"key_finding":"핵심30자이내","evidence":"근거50자이내"}`;
+[질문] ${q.question}\n[사용자 원본 응답] ${t}\n[${is}]
+먼저 사용자의 원본 응답에서 음성 인식(STT) 오류나 어색한 문맥을 찾아 올바른 시멘트/ESG 산업 용어로 매끄럽게 교정한 텍스트(corrected_text)를 작성하세요.
+그 교정된 텍스트를 바탕으로 재무적 영향도를 평가하세요.
+3점(高): 재무제표 직접 영향, 2점(中): 통제 가능, 1점(低): 영향 미미
+오직 아래의 JSON 형식으로만 응답하세요. 백틱(\`\`\`)은 쓰지 마세요.
+{"corrected_text":"교정된 텍스트 전체","score":1또는2또는3,"affected_issues":["코드"],"key_finding":"핵심30자이내","evidence":"근거50자이내"}`;
   
   try {
-    const raw = await callClaude(p, 300); 
+    const raw = await callClaude(p, 500); 
     console.log("🤖 Claude 원본 응답:", raw); 
     
     const cleanJson = raw.replace(/```json|```/gi, "").trim();
@@ -1199,7 +1206,7 @@ JSON만 응답: {"score":1또는2또는3,"affected_issues":["코드"],"key_findi
     
   } catch(e) {
     console.error("🚨 AI 분석 실패 원인:", e.message);
-    return { score: 1, affected_issues: ["에러"], key_finding: "AI 분석 중 오류가 발생했습니다.", evidence: `에러 사유: ${e.message}` };
+    return { corrected_text: t, score: 1, affected_issues: ["에러"], key_finding: "AI 분석 중 오류가 발생했습니다.", evidence: `에러 사유: ${e.message}` };
   }
 }
 
@@ -1231,7 +1238,6 @@ async function callClaude(p, m) {
 function downloadTestFiles() {
   const baseName = getBaseFileName();
 
-  // 1. 답변 텍스트 CSV 양식으로 생성
   let csvContent = "\uFEFF"; 
   csvContent += "--- 기초 정보 ---\n";
   csvContent += `소속회사,${S.co}\n`;
@@ -1243,12 +1249,12 @@ function downloadTestFiles() {
   csvContent += `인터뷰시작,${S.startTime}\n\n`;
   
   csvContent += "--- 인터뷰 답변 내용 ---\n";
-  csvContent += "질문ID,질문내용,답변내용\n";
+  csvContent += "질문ID,질문내용,답변내용(AI교정반영)\n";
   
-  S.ans.forEach((a) => {
-    const cleanQ = `"${a.question.replace(/"/g, '""').replace(/<[^>]+>/g, '')}"`;
-    const cleanA = `"${a.answer.replace(/"/g, '""')}"`;
-    csvContent += `${a.qId},${cleanQ},${cleanA}\n`;
+  S.analysisLogs.forEach((log) => {
+    const cleanQ = `"${log.q.txt.replace(/"/g, '""').replace(/<[^>]+>/g, '')}"`;
+    const cleanA = `"${log.txt.replace(/"/g, '""')}"`;
+    csvContent += `${log.q.id},${cleanQ},${cleanA}\n`;
   });
   
   downloadBlob(new Blob([csvContent], {type: 'text/csv;charset=utf-8'}), `텍스트_${baseName}.csv`);
@@ -1271,7 +1277,7 @@ function downloadTestFiles() {
 }
 
 function exportAnalysisCSV(baseName) {
-  let csv = "\uFEFF질문ID,질문내용,답변내용,AI재무영향점수,관련이슈,핵심요약,근거\n";
+  let csv = "\uFEFF질문ID,질문내용,답변내용(AI교정),AI재무영향점수,관련이슈,핵심요약,근거\n";
   S.analysisLogs.forEach(log => {
     const qId = log.q.id;
     const qTxt = `"${log.q.txt.replace(/"/g, '""').replace(/<[^>]+>/g, '')}"`;
@@ -1313,14 +1319,11 @@ function showToast(m){
   setTimeout(()=>t.classList.remove("show"),3000);
 }
 
-// 🚨 창 닫기 시 데이터 완벽 초기화 & 홈 화면 복귀
 function closeApp(){
-  // 팝업 및 앱 닫기, 시작화면 노출
   document.getElementById('doneOv').style.display = 'none';
   document.getElementById('app').style.display = 'none';
   document.getElementById('startScreen').style.display = 'flex';
   
-  // 입력 필드 초기화
   document.getElementById("co").value = "";
   document.getElementById("dept").value = "";
   document.getElementById("ttl").value = "";
@@ -1330,7 +1333,6 @@ function closeApp(){
   document.getElementById("lv").value = "";
   document.getElementById("apiK").value = "";
 
-  // 시스템 내부 상태 변수 S 초기화
   S.qs = [];
   S.cur = -1;
   S.ans = [];
@@ -1348,7 +1350,6 @@ function closeApp(){
   clearInterval(S.waveIv);
   clearInterval(S.cdIv);
   
-  // 앱 화면 UI 리셋
   document.getElementById("qaScroll").innerHTML = "";
   document.getElementById("tbox").innerHTML = '<span class="ph" id="tph">질문을 들은 후 자동으로 응답이 시작됩니다.</span>';
   setRecBtn(false);
@@ -1397,7 +1398,7 @@ function setSt(ty,tx){
 function showWave(on){
   const w=document.getElementById("wave");w.style.display=on?"flex":"none";
   if(on) S.waveIv=setInterval(()=>{for(let i=1;i<=6;i++)document.getElementById("w"+i).style.height=(4+Math.random()*20)+"px";},90);
-  else{clearInterval(S.waveIv);for(let i=1;i<=6;i++)documentgetElementById("w"+i).style.height="5px";}
+  else{clearInterval(S.waveIv);for(let i=1;i<=6;i++)document.getElementById("w"+i).style.height="5px";}
 }
 </script>
 </body>
