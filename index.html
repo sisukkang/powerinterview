@@ -585,27 +585,11 @@ function insertTable(idx) {
   const tableHTML = `<br><table><tbody><tr><th>항목</th><th>내용</th></tr><tr><td>-</td><td>-</td></tr></tbody></table><br>`;
   tempQBank[idx].txt += tableHTML;
   renderAdminQuestions();
-  setTimeout(() => {
-    const inputs = document.querySelectorAll('.admin-q-input');
-    if(inputs[idx]) {
-      inputs[idx].focus();
-      const range = document.createRange();
-      const sel = window.getSelection();
-      range.selectNodeContents(inputs[idx]);
-      range.collapse(false); 
-      sel.removeAllRanges();
-      sel.addRange(range);
-    }
-  }, 50);
 }
 function addAdminQuestion() {
   syncTempQBank();
   tempQBank.push({ id: `Q${tempQBank.length + 1}`, txt: "", hint: "", issues: [], lv: ["exec","mid","field"] });
   renderAdminQuestions();
-  setTimeout(() => {
-    const list = document.getElementById('adminQList');
-    list.scrollTop = list.scrollHeight;
-  }, 50);
 }
 function removeAdminQuestion(idx) {
   syncTempQBank();
@@ -767,7 +751,9 @@ function renderQ(customQ = null){
   const qs = customQ !== null ? S.qs[customQ] : (S.cur < S.qs.length ? S.qs[S.cur] : null);
   if(!qs){checkMissingAndFinish();return;}
   
+  document.getElementById("tbox").contentEditable = "false"; // 텍스트 편집 막기 초기화
   S.answerDone=false;S.curTxt="";setTbox("",false);
+  
   const a=document.getElementById("qaScroll");
   a.innerHTML=`<div class="status-row"><div class="sdot" id="sdot"></div><div class="stxt" id="stxt">질문을 준비하고 있습니다...</div><div class="qnum" id="qnum">Q ${S.cur+1} / ${S.qs.length}</div></div>`;
   
@@ -789,6 +775,13 @@ function renderQ(customQ = null){
      S.answerDone = true;
      setAllBtns(false);
      document.getElementById("redoBtn").disabled = false;
+     
+     // 🚨 기존 답변이 있는 상태에서 검토 모드일 땐 '다음 질문'으로 바로 넘어갈 수 있게 버튼 활성화
+     if(S.isReviewMode) {
+       document.getElementById("prevBtn").disabled = false;
+       document.getElementById("nextBtn").disabled = false;
+     }
+
   } else {
      document.getElementById("tbox").style.display = "block";
      setSt("speaking","🔊 질문을 읽고 있습니다...");
@@ -938,15 +931,25 @@ function stopAnswer(){
 
 function redoAnswer(){
   document.getElementById("tbox").contentEditable = "false";
+  document.getElementById("tbox").style.display = "block"; // 텍스트박스 복구
   S.curTxt="";setTbox("",false);S.answerDone=false;
   if(S.synth) { S.synth.cancel(); S.isSpeaking = false; }
   
   const cQ=S.qs[S.cur];
   const existingIdx = S.ans.findIndex(a => a.qId === cQ.id);
-  if(existingIdx !== -1) S.ans.splice(existingIdx, 1);
+  if(existingIdx !== -1) {
+    S.ans.splice(existingIdx, 1);
+  }
+  
+  // 화면에 표시된 답변 영역 지우기
+  const aCards = document.querySelectorAll(".a-card");
+  aCards.forEach(c => c.remove());
+  
+  updateProgressList(); // 상태 대기중으로 변경
   
   document.getElementById("redoBtn").disabled=true;document.getElementById("submitBtn").disabled=true;
-  setSt("waiting","🔄 다시 응답을 시작합니다...");setTimeout(()=>startRecording(),500);
+  setSt("waiting","⏳ 10초 후 자동으로 응답이 시작됩니다...");
+  startCountdown(10,()=>startRecording());
 }
 
 function startTimer(){
@@ -964,6 +967,7 @@ function updateTimerUI(sec){
 
 if(speechSynthesis.onvoiceschanged!==undefined) speechSynthesis.onvoiceschanged=()=>S.synth.getVoices();
 
+// 🚨 Edge 호환성 강화 TTS 로직
 function speak(txt,cb){
   if(!S.synth){if(cb)cb();return;}
   S.synth.cancel();
@@ -1171,31 +1175,59 @@ async function startBatchAnalysis() {
   }, 1000);
 }
 
-// 실제 Claude API 연동
-async function analyzeAns(q,t){
-  const is=q.issues && q.issues.length>0?`관련 이슈: ${q.issues.join(", ")}`:"종합 질문";
-  const p=`당신은 한일시멘트 ESG 이중 중대성 평가 전문가입니다.
+// 실제 Claude API 연동 (에러 추적 및 더미 데이터 반환 추가)
+async function analyzeAns(q, t) {
+  const is = q.issues && q.issues.length > 0 ? `관련 이슈: ${q.issues.join(", ")}` : "종합 질문";
+  const p = `당신은 한일시멘트 ESG 이중 중대성 평가 전문가입니다.
 [질문] ${q.question}\n[응답] ${t}\n[${is}]\n3점(高): 재무제표 직접 영향, 2점(中): 통제 가능, 1점(低): 영향 미미
 JSON만 응답: {"score":1또는2또는3,"affected_issues":["코드"],"key_finding":"핵심30자이내","evidence":"근거50자이내"}`;
-  try{
-    const raw=await callClaude(p,300); 
-    console.log("AI 원본 응답:", raw);
-    return JSON.parse(raw.replace(/```json|```/gi,"").trim());
-  }catch(e){
-    console.error("AI 분석 실패:", e.message);
-    return { score: 1, affected_issues: ["에러"], key_finding: "AI 분석 중 오류가 발생했습니다.", evidence: `에러 사유: ${e.message}` };
+  
+  try {
+    const raw = await callClaude(p, 300); 
+    console.log("🤖 Claude 원본 응답:", raw); 
+    
+    const cleanJson = raw.replace(/```json|```/gi, "").trim();
+    return JSON.parse(cleanJson);
+    
+  } catch(e) {
+    console.error("🚨 AI 분석 실패 원인:", e.message);
+    
+    return {
+      score: 1, 
+      affected_issues: ["에러"], 
+      key_finding: "AI 분석 중 오류가 발생했습니다.", 
+      evidence: `에러 사유: ${e.message}`
+    };
   }
 }
 
-async function callClaude(p,m){
-  const r=await fetch("https://api.anthropic.com/v1/messages",{
-    method:"POST",
-    headers:{"Content-Type":"application/json","x-api-key":S.apiKey,"anthropic-version":"2023-06-01","anthropic-dangerously-allow-browser": "true"},
-    body:JSON.stringify({model:"claude-3-5-sonnet-20241022",max_tokens:m,messages:[{role:"user",content:p}]})
-  });
-  const d=await r.json(); 
-  if(d.error) throw new Error(d.error.message); 
-  return d.content?.[0]?.text||"{}";
+async function callClaude(p, m) {
+  try {
+    const r = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": S.apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerously-allow-browser": "true" 
+      },
+      body: JSON.stringify({
+        model: "claude-3-5-sonnet-20241022",
+        max_tokens: m,
+        messages: [{ role: "user", content: p }]
+      })
+    });
+    
+    const d = await r.json(); 
+    
+    if(d.error) {
+      throw new Error(`[API 에러] ${d.error.type}: ${d.error.message}`);
+    }
+    return d.content?.[0]?.text || "{}";
+    
+  } catch(err) {
+    throw new Error(err.message);
+  }
 }
 
 // 파일 다운로드 로직
