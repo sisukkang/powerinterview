@@ -306,7 +306,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#f1f5f9;min-height:100vh}
       <div style="padding:1.5rem; background:#f0fdf4; color:#065f46; border-radius:12px; width:100%; font-size:1.1rem; font-weight:700; border:1px solid #bbf7d0;">
         🙏 인터뷰에 응해 주셔서 진심으로 감사합니다.
       </div>
-      <button class="d-btn s" style="width:100%; padding: 0.9rem; font-size:1rem;" onclick="closeApp()">창 닫기</button>
+      <button class="d-btn s" style="width:100%; padding: 0.9rem; font-size:1rem;" onclick="closeApp()">창 닫기 (초기화면)</button>
     </div>
   </div>
 </div>
@@ -585,11 +585,27 @@ function insertTable(idx) {
   const tableHTML = `<br><table><tbody><tr><th>항목</th><th>내용</th></tr><tr><td>-</td><td>-</td></tr></tbody></table><br>`;
   tempQBank[idx].txt += tableHTML;
   renderAdminQuestions();
+  setTimeout(() => {
+    const inputs = document.querySelectorAll('.admin-q-input');
+    if(inputs[idx]) {
+      inputs[idx].focus();
+      const range = document.createRange();
+      const sel = window.getSelection();
+      range.selectNodeContents(inputs[idx]);
+      range.collapse(false); 
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+  }, 50);
 }
 function addAdminQuestion() {
   syncTempQBank();
   tempQBank.push({ id: `Q${tempQBank.length + 1}`, txt: "", hint: "", issues: [], lv: ["exec","mid","field"] });
   renderAdminQuestions();
+  setTimeout(() => {
+    const list = document.getElementById('adminQList');
+    list.scrollTop = list.scrollHeight;
+  }, 50);
 }
 function removeAdminQuestion(idx) {
   syncTempQBank();
@@ -751,7 +767,7 @@ function renderQ(customQ = null){
   const qs = customQ !== null ? S.qs[customQ] : (S.cur < S.qs.length ? S.qs[S.cur] : null);
   if(!qs){checkMissingAndFinish();return;}
   
-  document.getElementById("tbox").contentEditable = "false"; // 텍스트 편집 막기 초기화
+  document.getElementById("tbox").contentEditable = "false"; 
   S.answerDone=false;S.curTxt="";setTbox("",false);
   
   const a=document.getElementById("qaScroll");
@@ -776,7 +792,6 @@ function renderQ(customQ = null){
      setAllBtns(false);
      document.getElementById("redoBtn").disabled = false;
      
-     // 🚨 기존 답변이 있는 상태에서 검토 모드일 땐 '다음 질문'으로 바로 넘어갈 수 있게 버튼 활성화
      if(S.isReviewMode) {
        document.getElementById("prevBtn").disabled = false;
        document.getElementById("nextBtn").disabled = false;
@@ -799,7 +814,6 @@ function renderQ(customQ = null){
   updateProgressList();
 }
 
-// 🚨 네비게이션 제어 로직 (검토 모드에 따라 하단 메뉴 통째로 노출 제어)
 function updateNavButtons() {
   const btnSubGroup = document.getElementById("btnSubGroup");
 
@@ -810,7 +824,6 @@ function updateNavButtons() {
     document.getElementById("endBtn").style.display = "inline-block";
     document.getElementById("scTtl").innerText = "자유롭게 클릭하여 문항 이동";
   } else {
-    // 정규 진행 중에는 하단 보조 메뉴를 완전히 숨겨서 순차 진행(제출)만 강제함
     btnSubGroup.style.display = "none"; 
     document.getElementById("scTtl").innerText = "진행 중 (모든 질문 완료 후 이동 가능)";
   }
@@ -931,7 +944,7 @@ function stopAnswer(){
 
 function redoAnswer(){
   document.getElementById("tbox").contentEditable = "false";
-  document.getElementById("tbox").style.display = "block"; // 텍스트박스 복구
+  document.getElementById("tbox").style.display = "block";
   S.curTxt="";setTbox("",false);S.answerDone=false;
   if(S.synth) { S.synth.cancel(); S.isSpeaking = false; }
   
@@ -941,11 +954,10 @@ function redoAnswer(){
     S.ans.splice(existingIdx, 1);
   }
   
-  // 화면에 표시된 답변 영역 지우기
   const aCards = document.querySelectorAll(".a-card");
   aCards.forEach(c => c.remove());
   
-  updateProgressList(); // 상태 대기중으로 변경
+  updateProgressList(); 
   
   document.getElementById("redoBtn").disabled=true;document.getElementById("submitBtn").disabled=true;
   setSt("waiting","⏳ 10초 후 자동으로 응답이 시작됩니다...");
@@ -967,7 +979,6 @@ function updateTimerUI(sec){
 
 if(speechSynthesis.onvoiceschanged!==undefined) speechSynthesis.onvoiceschanged=()=>S.synth.getVoices();
 
-// 🚨 Edge 호환성 강화 TTS 로직
 function speak(txt,cb){
   if(!S.synth){if(cb)cb();return;}
   S.synth.cancel();
@@ -1059,8 +1070,6 @@ async function submitAnswer(){
   }
 
   updateProgressList();
-  
-  // 팝업 띄우기 -> goToNextQ() 호출됨
   document.getElementById("nextQOv").style.display="flex";
 }
 
@@ -1175,7 +1184,6 @@ async function startBatchAnalysis() {
   }, 1000);
 }
 
-// 실제 Claude API 연동 (에러 추적 및 더미 데이터 반환 추가)
 async function analyzeAns(q, t) {
   const is = q.issues && q.issues.length > 0 ? `관련 이슈: ${q.issues.join(", ")}` : "종합 질문";
   const p = `당신은 한일시멘트 ESG 이중 중대성 평가 전문가입니다.
@@ -1191,13 +1199,7 @@ JSON만 응답: {"score":1또는2또는3,"affected_issues":["코드"],"key_findi
     
   } catch(e) {
     console.error("🚨 AI 분석 실패 원인:", e.message);
-    
-    return {
-      score: 1, 
-      affected_issues: ["에러"], 
-      key_finding: "AI 분석 중 오류가 발생했습니다.", 
-      evidence: `에러 사유: ${e.message}`
-    };
+    return { score: 1, affected_issues: ["에러"], key_finding: "AI 분석 중 오류가 발생했습니다.", evidence: `에러 사유: ${e.message}` };
   }
 }
 
@@ -1217,14 +1219,9 @@ async function callClaude(p, m) {
         messages: [{ role: "user", content: p }]
       })
     });
-    
     const d = await r.json(); 
-    
-    if(d.error) {
-      throw new Error(`[API 에러] ${d.error.type}: ${d.error.message}`);
-    }
+    if(d.error) throw new Error(`[API 에러] ${d.error.type}: ${d.error.message}`);
     return d.content?.[0]?.text || "{}";
-    
   } catch(err) {
     throw new Error(err.message);
   }
@@ -1234,12 +1231,27 @@ async function callClaude(p, m) {
 function downloadTestFiles() {
   const baseName = getBaseFileName();
 
-  let textContent = "한일 ESG 파워인터뷰 전체 답변 텍스트\n\n";
+  // 1. 답변 텍스트 CSV 양식으로 생성
+  let csvContent = "\uFEFF"; 
+  csvContent += "--- 기초 정보 ---\n";
+  csvContent += `소속회사,${S.co}\n`;
+  csvContent += `부서,${S.dept}\n`;
+  csvContent += `직책,${S.ttl}\n`;
+  csvContent += `성명,${S.uName}\n`;
+  csvContent += `연락처,${S.uPhone}\n`;
+  csvContent += `이메일,${S.uEmail}\n`;
+  csvContent += `인터뷰시작,${S.startTime}\n\n`;
+  
+  csvContent += "--- 인터뷰 답변 내용 ---\n";
+  csvContent += "질문ID,질문내용,답변내용\n";
+  
   S.ans.forEach((a) => {
-    textContent += `[${a.qId}] ${a.question.replace(/<[^>]+>/g, '')}\n`;
-    textContent += `답변: ${a.answer}\n\n`;
+    const cleanQ = `"${a.question.replace(/"/g, '""').replace(/<[^>]+>/g, '')}"`;
+    const cleanA = `"${a.answer.replace(/"/g, '""')}"`;
+    csvContent += `${a.qId},${cleanQ},${cleanA}\n`;
   });
-  downloadBlob(new Blob([textContent], {type: 'text/plain;charset=utf-8'}), `텍스트_${baseName}.txt`);
+  
+  downloadBlob(new Blob([csvContent], {type: 'text/csv;charset=utf-8'}), `텍스트_${baseName}.csv`);
 
   setTimeout(() => { exportAnalysisCSV(baseName); }, 300);
 
@@ -1301,9 +1313,50 @@ function showToast(m){
   setTimeout(()=>t.classList.remove("show"),3000);
 }
 
+// 🚨 창 닫기 시 데이터 완벽 초기화 & 홈 화면 복귀
 function closeApp(){
-  document.getElementById('doneOv').style.display='none';
-  setSt("ready","인터뷰가 모두 종료되었습니다. 수고하셨습니다.");
+  // 팝업 및 앱 닫기, 시작화면 노출
+  document.getElementById('doneOv').style.display = 'none';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('startScreen').style.display = 'flex';
+  
+  // 입력 필드 초기화
+  document.getElementById("co").value = "";
+  document.getElementById("dept").value = "";
+  document.getElementById("ttl").value = "";
+  document.getElementById("userName").value = "";
+  document.getElementById("userPhone").value = "";
+  document.getElementById("userEmail").value = "";
+  document.getElementById("lv").value = "";
+  document.getElementById("apiK").value = "";
+
+  // 시스템 내부 상태 변수 S 초기화
+  S.qs = [];
+  S.cur = -1;
+  S.ans = [];
+  S.analysisLogs = [];
+  S.startTime = "";
+  S.isReviewMode = false;
+  S.isSpeaking = false;
+  S.answerDone = false;
+  S.audioChunks = [];
+  S.audioBlobs = {};
+  
+  if(S.synth) S.synth.cancel();
+  if(S.isRec) stopRecInternal();
+  clearInterval(S.timerIv);
+  clearInterval(S.waveIv);
+  clearInterval(S.cdIv);
+  
+  // 앱 화면 UI 리셋
+  document.getElementById("qaScroll").innerHTML = "";
+  document.getElementById("tbox").innerHTML = '<span class="ph" id="tph">질문을 들은 후 자동으로 응답이 시작됩니다.</span>';
+  setRecBtn(false);
+  document.getElementById("timerVal").textContent = "1:00";
+  document.getElementById("timerBar").style.width = "100%";
+  document.getElementById("pbf").style.width = "0%";
+  
+  showToast("초기 정보 입력 화면으로 돌아갑니다.");
 }
 
 function setAllBtns(on){
@@ -1344,7 +1397,7 @@ function setSt(ty,tx){
 function showWave(on){
   const w=document.getElementById("wave");w.style.display=on?"flex":"none";
   if(on) S.waveIv=setInterval(()=>{for(let i=1;i<=6;i++)document.getElementById("w"+i).style.height=(4+Math.random()*20)+"px";},90);
-  else{clearInterval(S.waveIv);for(let i=1;i<=6;i++)document.getElementById("w"+i).style.height="5px";}
+  else{clearInterval(S.waveIv);for(let i=1;i<=6;i++)documentgetElementById("w"+i).style.height="5px";}
 }
 </script>
 </body>
