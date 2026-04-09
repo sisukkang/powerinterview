@@ -369,7 +369,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#f1f5f9;min-height:100vh}
       <div class="logo">H</div>
       <div>
         <h1>한일 ESG 파워인터뷰</h1>
-        <div class="hdr-sub">이중 중대성 평가 · 재무 영향도 X축 산출</div>
+        <div class="hdr-sub">이중 중대성 평가 · 재무 영향도 산출</div>
       </div>
     </div>
     <div class="sess" id="sessId">SESSION: ----</div>
@@ -392,6 +392,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#f1f5f9;min-height:100vh}
           </div>
         </div>
         <div class="tbox" id="tbox"><span class="ph" id="tph">질문을 들은 후 자동으로 응답이 시작됩니다.</span></div>
+        
         <div class="btn-main">
           <button class="ctrl-btn cb-start" id="recBtn" onclick="toggleRec()" disabled><span class="ci" id="recIcon">🎤</span><span class="cl" id="recLabel">응답 시작</span></button>
           <button class="ctrl-btn cb-stop" id="stopBtn" onclick="stopAnswer()" disabled style="animation:none"><span class="ci">⏹</span><span class="cl">답변 종료</span></button>
@@ -406,8 +407,12 @@ body{font-family:'Noto Sans KR',sans-serif;background:#f1f5f9;min-height:100vh}
           </div>
           <div class="btn-sub-group">
             <button class="btn-xs" id="replayBtn" onclick="replayQ()">🔊 다시 듣기</button>
-            <button class="btn-xs end-xs" id="endBtn" onclick="checkMissingAndFinish()" style="background:#059669; border-color:#059669; color:#fff;">✅ 최종 검토 완료 (AI 분석)</button>
+            <button class="btn-xs end-xs" id="endBtn" onclick="checkMissingAndFinish()" style="background:#059669; border-color:#059669; color:#fff;">✅ 최종 검토 완료</button>
           </div>
+        </div>
+        
+        <div class="btn-sub" id="skipGroup" style="justify-content: flex-end; margin-top: 0.5rem;">
+            <button class="btn-xs" id="skipBtn" onclick="skipQ()">건너뛰기</button>
         </div>
 
       </div>
@@ -416,7 +421,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#f1f5f9;min-height:100vh}
     <div class="right">
       <div class="rh"><h3><div class="ai-dot"></div>인터뷰 진행현황</h3></div>
       <div class="sc-sec">
-        <div class="sc-ttl" id="scTtl">진행 중 (완료 후 이동 가능)</div>
+        <div class="sc-ttl" id="scTtl">진행 중 (모든 질문 완료 후 이동 가능)</div>
         <div class="sc-list" id="progressList"></div>
       </div>
       <div class="summ">
@@ -487,9 +492,6 @@ function initAppData() {
 }
 initAppData();
 
-// ══════════════════════════════════════
-// 관리자 기능
-// ══════════════════════════════════════
 function openAdminAuth() {
   document.getElementById('adminAuthPwd').value = '';
   document.getElementById('adminAuthOv').style.display = 'flex';
@@ -587,27 +589,11 @@ function insertTable(idx) {
   const tableHTML = `<br><table><tbody><tr><th>항목</th><th>내용</th></tr><tr><td>-</td><td>-</td></tr></tbody></table><br>`;
   tempQBank[idx].txt += tableHTML;
   renderAdminQuestions();
-  setTimeout(() => {
-    const inputs = document.querySelectorAll('.admin-q-input');
-    if(inputs[idx]) {
-      inputs[idx].focus();
-      const range = document.createRange();
-      const sel = window.getSelection();
-      range.selectNodeContents(inputs[idx]);
-      range.collapse(false); 
-      sel.removeAllRanges();
-      sel.addRange(range);
-    }
-  }, 50);
 }
 function addAdminQuestion() {
   syncTempQBank();
   tempQBank.push({ id: `Q${tempQBank.length + 1}`, txt: "", hint: "", issues: [], lv: ["exec","mid","field"] });
   renderAdminQuestions();
-  setTimeout(() => {
-    const list = document.getElementById('adminQList');
-    list.scrollTop = list.scrollHeight;
-  }, 50);
 }
 function removeAdminQuestion(idx) {
   syncTempQBank();
@@ -681,7 +667,6 @@ function getBaseFileName() {
   return `${compCode}_${S.uName}_${phoneStr}_${S.startTime}`;
 }
 
-// 폼 검증
 function checkFormAndShowPrivacy(){
   const co = document.getElementById("co").value;
   const dept = document.getElementById("dept").value.trim();
@@ -737,10 +722,7 @@ function requestMicPermission(cb){
 
 function initSTT(){
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SR) {
-    S.sttSupported = false;
-    return;
-  }
+  if(!SR) { S.sttSupported = false; return; }
   S.sttSupported = true;
   S.recog = new SR();
   S.recog.lang = "ko-KR";
@@ -781,7 +763,7 @@ function renderQ(customQ = null){
   
   const existingAns = S.ans.find(ans => ans.qId === qs.id);
   
-  if (existingAns) {
+  if (existingAns && existingAns.answer !== "[건너뜀]") {
      document.getElementById("tbox").style.display = "none";
      const ac=document.createElement("div");
      ac.className="a-card";
@@ -812,20 +794,21 @@ function renderQ(customQ = null){
 // 🚨 네비게이션 제어 로직 (검토 모드에 따라 노출 변경)
 function updateNavButtons() {
   const btnSubGroup = document.getElementById("btnSubGroup");
+  const skipGroup = document.getElementById("skipGroup");
+
   if (S.isReviewMode) {
     btnSubGroup.style.display = "flex";
+    skipGroup.style.display = "none"; 
     document.getElementById("prevBtn").style.display = S.cur > 0 ? "inline-block" : "none";
     document.getElementById("nextBtn").style.display = S.cur < S.qs.length - 1 ? "inline-block" : "none";
-    document.getElementById("endBtn").style.display = "inline-block";
-    document.getElementById("replayBtn").style.display = "inline-block";
     document.getElementById("scTtl").innerText = "자유롭게 클릭하여 문항 이동";
   } else {
-    btnSubGroup.style.display = "none"; // 정규 인터뷰 중에는 메뉴 숨김
-    document.getElementById("scTtl").innerText = "진행 중 (완료 후 자유이동 가능)";
+    btnSubGroup.style.display = "none"; 
+    skipGroup.style.display = "flex";
+    document.getElementById("scTtl").innerText = "진행 중 (모든 질문 완료 후 이동 가능)";
   }
 }
 
-// 작성 중인 답변을 무시하고 이동할지 묻는 안전장치
 function checkUnsavedData() {
   const tb = document.getElementById("tbox");
   if (tb && tb.style.display !== "none" && S.curTxt.trim() !== "" && document.getElementById("submitBtn").disabled === false) {
@@ -835,10 +818,7 @@ function checkUnsavedData() {
 }
 
 function prevQ() {
-  if (S.isRec || S.isSpeaking) {
-    showToast("현재 질문 읽기 또는 답변이 진행 중입니다. 완료 후 이동해주세요.");
-    return;
-  }
+  if (S.isRec || S.isSpeaking) { showToast("현재 질문 읽기 또는 답변이 진행 중입니다. 완료 후 이동해주세요."); return; }
   if (!checkUnsavedData()) return;
   if(S.isRec) stopRecInternal();
   if(S.synth) { S.synth.cancel(); S.isSpeaking = false; }
@@ -847,10 +827,7 @@ function prevQ() {
 }
 
 function nextQ() {
-  if (S.isRec || S.isSpeaking) {
-    showToast("현재 질문 읽기 또는 답변이 진행 중입니다. 완료 후 이동해주세요.");
-    return;
-  }
+  if (S.isRec || S.isSpeaking) { showToast("현재 질문 읽기 또는 답변이 진행 중입니다. 완료 후 이동해주세요."); return; }
   if (!checkUnsavedData()) return;
   if(S.isRec) stopRecInternal();
   if(S.synth) { S.synth.cancel(); S.isSpeaking = false; }
@@ -865,7 +842,7 @@ function jumpToQ(idx) {
     return;
   }
   if (S.isRec || S.isSpeaking) {
-    showToast("현재 질문 읽기 또는 답변이 진행 중입니다. 완료 후 이동해주세요.");
+    showToast("진행 중인 동작이 있습니다. 답변 종료 후 이동해 주세요.");
     return;
   }
   if (!checkUnsavedData()) return;
@@ -973,6 +950,7 @@ function updateTimerUI(sec){
 
 if(speechSynthesis.onvoiceschanged!==undefined) speechSynthesis.onvoiceschanged=()=>S.synth.getVoices();
 
+// 🚨 Edge 호환성 강화 TTS 로직
 function speak(txt,cb){
   if(!S.synth){if(cb)cb();return;}
   S.synth.cancel();
@@ -1049,7 +1027,7 @@ async function submitAnswer(){
   
   const cQ=S.qs[S.cur];
   setAllBtns(false);
-  document.getElementById("submitBtn").disabled = true; // 중복 제출 방지
+  document.getElementById("submitBtn").disabled = true; 
   
   const ar=document.getElementById("qaScroll"),ac=document.createElement("div");
   ac.className="a-card";
@@ -1065,6 +1043,31 @@ async function submitAnswer(){
 
   updateProgressList();
   document.getElementById("nextQOv").style.display="flex";
+}
+
+function skipQ(){
+  clearInterval(S.cdIv);clearInterval(S.timerIv);document.getElementById("cdOverlay").style.display="none";
+  if(S.isRec)stopRecInternal();
+  
+  const cQ=S.qs[S.cur];
+  if(cQ) {
+    const existingIdx = S.ans.findIndex(a => a.qId === cQ.id);
+    if(existingIdx !== -1) {
+      S.ans[existingIdx] = {qId:cQ.id, question:cQ.txt, answer:"[건너뜀]", issues:cQ.issues};
+    } else {
+      S.ans.push({qId:cQ.id, question:cQ.txt, answer:"[건너뜀]", issues:cQ.issues});
+    }
+  }
+  
+  updateProgressList();
+  
+  if (!S.isReviewMode) {
+    S.cur++;
+    if (S.cur < S.qs.length) renderQ();
+    else checkMissingAndFinish();
+  } else {
+    checkMissingAndFinish();
+  }
 }
 
 function goToNextQ(){
@@ -1190,14 +1193,18 @@ async function analyzeAns(q,t){
 JSON만 응답: {"score":1또는2또는3,"affected_issues":["코드"],"key_finding":"핵심30자이내","evidence":"근거50자이내"}`;
   try{
     const raw=await callClaude(p,300); 
-    return JSON.parse(raw.replace(/```json|```/g,"").trim());
-  }catch(e){return null;}
+    console.log("AI 원본 응답:", raw);
+    return JSON.parse(raw.replace(/```json|```/gi,"").trim());
+  }catch(e){
+    console.error("AI 분석 실패:", e.message);
+    return { score: 1, affected_issues: ["에러"], key_finding: "AI 분석 중 오류가 발생했습니다.", evidence: `에러 사유: ${e.message}` };
+  }
 }
 
 async function callClaude(p,m){
   const r=await fetch("https://api.anthropic.com/v1/messages",{
     method:"POST",
-    headers:{"Content-Type":"application/json","x-api-key":S.apiKey,"anthropic-version":"2023-06-01"},
+    headers:{"Content-Type":"application/json","x-api-key":S.apiKey,"anthropic-version":"2023-06-01","anthropic-dangerously-allow-browser": "true"},
     body:JSON.stringify({model:"claude-3-5-sonnet-20241022",max_tokens:m,messages:[{role:"user",content:p}]})
   });
   const d=await r.json(); 
@@ -1209,7 +1216,6 @@ async function callClaude(p,m){
 function downloadTestFiles() {
   const baseName = getBaseFileName();
 
-  // 1. 텍스트 파일
   let textContent = "한일 ESG 파워인터뷰 전체 답변 텍스트\n\n";
   S.ans.forEach((a) => {
     textContent += `[${a.qId}] ${a.question.replace(/<[^>]+>/g, '')}\n`;
@@ -1217,12 +1223,8 @@ function downloadTestFiles() {
   });
   downloadBlob(new Blob([textContent], {type: 'text/plain;charset=utf-8'}), `텍스트_${baseName}.txt`);
 
-  // 2. AI 분석 CSV
-  setTimeout(() => {
-    exportAnalysisCSV(baseName);
-  }, 300);
+  setTimeout(() => { exportAnalysisCSV(baseName); }, 300);
 
-  // 3. 음성 파일
   let audioIdx = 1;
   S.ans.forEach((a, i) => {
     const blob = S.audioBlobs[a.qId];
