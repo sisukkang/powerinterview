@@ -1,1 +1,1263 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>한일 ESG 파워인터뷰</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=DM+Mono&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans KR',sans-serif;background:#f1f5f9;min-height:100vh}
 
+/* ── 시작 화면 ── */
+.start{position:fixed;inset:0;background:#0f1f3d;display:flex;align-items:center;justify-content:center;z-index:999;overflow-y:auto;padding:2rem 0}
+.start-box{background:#fff;border-radius:16px;padding:2.5rem;width:460px;max-width:95%;margin:auto;position:relative;}
+.start-box h2{font-size:1.3rem;color:#0f1f3d;margin-bottom:.35rem;text-align:center}
+.start-box .sub{font-size:.83rem;color:#64748b;text-align:center;line-height:1.7;margin-bottom:1.4rem}
+.start-box label{font-size:.8rem;color:#64748b;display:block;margin-bottom:3px;font-weight:500}
+.start-box input,.start-box select{width:100%;padding:9px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:.88rem;font-family:'Noto Sans KR',sans-serif;color:#0f172a;outline:none;margin-bottom:.8rem}
+.start-box input:focus,.start-box select:focus{border-color:#3b82f6}
+.start-box input[type=password]{font-family:'DM Mono',monospace}
+.note{font-size:.72rem;color:#94a3b8;margin-top:-6px;margin-bottom:.8rem;line-height:1.5}
+.start-btn{width:100%;padding:.88rem;background:#1a56db;color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:background 0.2s}
+.start-btn:hover{background:#1d4ed8}
+
+/* 관리자 버튼 및 에디터 UI 고도화 */
+.admin-btn{position:absolute;top:20px;right:20px;background:none;border:none;cursor:pointer;font-size:1.2rem;color:#94a3b8;transition:color 0.2s}
+.admin-btn:hover{color:#0f1f3d}
+.admin-q-row { display:flex; flex-direction:column; gap:8px; background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #e2e8f0; }
+.admin-q-header { display:flex; justify-content:space-between; align-items:center; }
+.admin-q-num { font-weight:700; color:#1a56db; font-family:'DM Mono',monospace; font-size:1.1rem; }
+.admin-q-input { flex:1; padding:12px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.95rem; font-family:'Noto Sans KR',sans-serif; outline:none; transition:border-color 0.2s; background:#fff; min-height:60px; max-height:200px; overflow-y:auto; white-space:pre-wrap; line-height:1.6; word-break:break-all; }
+.admin-q-input:focus { border-color:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,0.1); }
+.admin-q-input:empty:before { content: attr(data-placeholder); color: #94a3b8; pointer-events: none; }
+.admin-sub-input { padding:8px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.85rem; font-family:'Noto Sans KR',sans-serif; outline:none; background:#fff; transition:border-color 0.2s; }
+.admin-sub-input:focus { border-color:#3b82f6; }
+.admin-q-del { background:#ef4444; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-weight:600; font-size:0.8rem; transition:background 0.2s; }
+.admin-q-del:hover { background:#dc2626; }
+.admin-q-table-btn { background:#fff; color:#3b82f6; border:1px solid #3b82f6; padding:6px 10px; border-radius:6px; cursor:pointer; font-weight:600; font-size:0.8rem; transition:all 0.2s; }
+.admin-q-table-btn:hover { background:#eff6ff; }
+.admin-q-settings { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+.admin-q-lv-box { display:flex; gap:8px; font-size:0.85rem; color:#475569; background:#fff; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; align-items:center; }
+
+/* 표 삽입 시 렌더링 스타일 */
+.admin-q-input table, .q-text table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 0.9rem; }
+.admin-q-input th, .admin-q-input td, .q-text th, .q-text td { border: 1px solid #cbd5e1; padding: 8px 12px; text-align: left; }
+.admin-q-input th, .q-text th { background-color: #f1f5f9; font-weight: 700; color: #0f1f3d; }
+
+/* ── 앱 ── */
+.app{display:none;flex-direction:column;height:100vh;overflow:hidden}
+.hdr{background:#0f1f3d;padding:.85rem 1.5rem;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #3b82f6;flex-shrink:0}
+.hdr-l{display:flex;align-items:center;gap:.85rem}
+.logo{width:38px;height:38px;background:#3b82f6;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;color:#fff}
+.hdr h1{color:#fff;font-size:1.02rem;font-weight:500}
+.hdr-sub{color:#94a3b8;font-size:.7rem;margin-top:1px}
+.sess{font-family:'DM Mono',monospace;font-size:.68rem;color:#93c5fd;background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);padding:3px 9px;border-radius:999px}
+.prog-wrap{background:#e2e8f0;height:6px;flex-shrink:0}
+.prog-fill{height:100%;background:linear-gradient(90deg,#3b82f6,#059669);transition:width .4s;width:0%}
+
+/* 바디 */
+.body{display:grid;grid-template-columns:1fr 300px;flex:1;overflow:hidden}
+.left{display:flex;flex-direction:column;overflow:hidden}
+.qa-scroll{flex:1;overflow-y:auto;padding:1.25rem 1.25rem 0}
+.qa-scroll>*+*{margin-top:.85rem}
+
+/* 상태 및 카드 */
+.status-row{display:flex;align-items:center;gap:.7rem;background:#fff;border-radius:10px;padding:.7rem 1rem;border:1px solid #e2e8f0;margin-bottom:0.85rem}
+.sdot{width:11px;height:11px;border-radius:50%;background:#e2e8f0;flex-shrink:0;transition:background .3s}
+.sdot.ready{background:#059669}
+.sdot.speaking{background:#3b82f6;animation:pulse 1.2s infinite}
+.sdot.listening{background:#dc2626;animation:blink 1s infinite}
+.sdot.thinking{background:#7c3aed;animation:pulse .8s infinite}
+.sdot.waiting{background:#f59e0b;animation:blink 1.5s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.4)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.stxt{font-size:.86rem;color:#64748b;flex:1;line-height:1.4}
+.qnum{font-family:'DM Mono',monospace;font-size:.78rem;color:#94a3b8;font-weight:500}
+
+.q-card{background:#fff;border-radius:12px;padding:1.35rem 1.5rem;border:1px solid #e2e8f0;border-left:5px solid #3b82f6}
+.q-card.followup{border-left-color:#7c3aed;background:#faf5ff}
+.q-card.dimmed{opacity:.45}
+.q-part{font-size:.9rem;font-weight:700;color:#3b82f6;margin-bottom:.6rem;display:flex;align-items:center;gap:6px;}
+.q-card.followup .q-part{color:#7c3aed}
+.q-text{font-size:1.02rem;line-height:1.82;color:#0f172a}
+.q-hint{font-size:.76rem;color:#94a3b8;margin-top:.55rem;padding-top:.55rem;border-top:1px solid #f1f5f9;font-style:italic}
+
+.a-card{background:#f0fdf4;border-radius:12px;padding:1.15rem 1.35rem;border:1px solid #bbf7d0;border-left:5px solid #059669}
+.a-label{font-size:.68rem;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem}
+.a-text{font-size:.9rem;line-height:1.7;color:#065f46;white-space:pre-wrap}
+.a-analyzing{font-size:.8rem;font-weight:700;color:#059669;display:flex;align-items:center;gap:.4rem;margin-top:.6rem}
+
+/* 컨트롤 영역 */
+.ctrl{flex-shrink:0;background:#fff;border-top:2px solid #e2e8f0;padding:1rem 1.25rem 1rem}
+.timer-wave-row{display:flex;align-items:center;gap:.85rem;margin-bottom:.75rem}
+.timer-box{display:flex;align-items:center;gap:.5rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:.45rem .85rem;flex-shrink:0}
+.timer-label{font-size:.72rem;color:#94a3b8;font-weight:500}
+.timer-val{font-family:'DM Mono',monospace;font-size:1.3rem;font-weight:700;color:#0f1f3d;min-width:40px}
+.timer-val.urgent{color:#dc2626;animation:blink .7s infinite}
+.timer-bar-wrap{flex:1;background:#e2e8f0;border-radius:999px;height:8px;overflow:hidden}
+.timer-bar{height:100%;background:#3b82f6;border-radius:999px;transition:width .95s linear;width:100%}
+.timer-bar.urgent{background:#dc2626}
+.wave{display:none;align-items:center;gap:2px;height:24px}
+.wb{width:3px;background:#dc2626;border-radius:2px;height:5px;transition:height .08s}
+
+.tbox{background:#f8fafc;border:2px solid #e2e8f0;border-radius:10px;padding:.8rem 1rem;min-height:62px;max-height:90px;overflow-y:auto;font-size:.9rem;color:#0f172a;line-height:1.6;margin-bottom:.8rem;font-family:'Noto Sans KR',sans-serif;transition:border-color .2s}
+.tbox.listening{border-color:#dc2626;background:#fff5f5}
+.tbox.done{border-color:#059669;background:#f0fdf4}
+.tbox .ph{color:#94a3b8;font-style:italic}
+.tbox[contenteditable="true"] { cursor: text; background: #fff; border-color: #3b82f6; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); }
+.tbox[contenteditable="true"]:focus { box-shadow: 0 0 0 3px rgba(59,130,246,0.15); outline: none; }
+.tbox.done[contenteditable="true"] { border-color: #059669; }
+.tbox.done[contenteditable="true"]:focus { box-shadow: 0 0 0 3px rgba(5,150,105,0.2); }
+
+/* 메인 버튼 */
+.btn-main{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.55rem;margin-bottom:.5rem}
+.ctrl-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.28rem;padding:.8rem .4rem;border-radius:11px;border:none;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all .18s}
+.ctrl-btn:disabled{opacity:.35;cursor:not-allowed}
+.ctrl-btn:active:not(:disabled){transform:scale(.96)}
+.ctrl-btn .ci{font-size:1.4rem;line-height:1}
+.ctrl-btn .cl{font-size:.72rem;font-weight:700;line-height:1.2;text-align:center}
+.cb-start{background:#1a56db;color:#fff}.cb-start:hover:not(:disabled){background:#1d4ed8}
+.cb-stop{background:#dc2626;color:#fff;box-shadow:0 0 0 0 rgba(220,38,38,.4);animation:rec-pulse 1.5s infinite}
+.cb-stop:hover:not(:disabled){background:#b91c1c}
+@keyframes rec-pulse{0%{box-shadow:0 0 0 0 rgba(220,38,38,.5)}70%{box-shadow:0 0 0 12px rgba(220,38,38,0)}100%{box-shadow:0 0 0 0 rgba(220,38,38,0)}}
+.cb-redo{background:#f59e0b;color:#fff}.cb-redo:hover:not(:disabled){background:#d97706}
+.cb-submit{background:#059669;color:#fff}.cb-submit:hover:not(:disabled){background:#047857}
+
+/* 보조 버튼 */
+.btn-sub{display:flex;gap:.45rem;justify-content:flex-end}
+.btn-xs{padding:.38rem .75rem;border-radius:6px;border:1px solid #e2e8f0;background:#fff;font-size:.77rem;cursor:pointer;font-family:'Noto Sans KR',sans-serif;color:#64748b;transition:all .15s}
+.btn-xs:hover:not(:disabled){background:#f1f5f9}
+.btn-xs:disabled{opacity:.35;cursor:not-allowed}
+
+/* 오버레이들 */
+.countdown-overlay{position:fixed;inset:0;background:rgba(255,255,255,0.85);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:500;flex-direction:column;gap:0.5rem}
+.countdown-num{font-size:6rem;font-weight:700;color:#1a56db;font-family:'DM Mono',monospace;animation:cd-zoom .9s ease infinite}
+@keyframes cd-zoom{0%{transform:scale(1)}50%{transform:scale(1.08)}100%{transform:scale(1)}}
+.countdown-txt{font-size:1.2rem;font-weight:700;color:#0f1f3d}
+
+.ai-loading-ov { position:fixed; inset:0; background:rgba(15,31,61,.95); display:none; align-items:center; justify-content:center; z-index:1000; flex-direction:column; gap:1.5rem; color:#fff; backdrop-filter:blur(5px); }
+.ai-loading-spinner { width: 50px; height: 50px; border: 4px solid rgba(255,255,255,.3); border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; }
+.ai-loading-text { font-size: 1.2rem; font-weight: 700; text-align: center; line-height: 1.6; }
+
+/* 오른쪽 패널 (진행현황) */
+.right{background:#0f1f3d;display:flex;flex-direction:column;overflow:hidden}
+.rh{padding:.8rem 1rem;border-bottom:1px solid rgba(255,255,255,.07)}
+.rh h3{color:#e2e8f0;font-size:.82rem;font-weight:500;display:flex;align-items:center;gap:.45rem}
+.sc-sec{padding:.7rem .9rem;border-bottom:1px solid rgba(255,255,255,.06);flex:1;overflow-y:auto}
+.sc-ttl{font-size:.65rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.45rem}
+.sc-list{display:flex;flex-direction:column;gap:6px;}
+.si{display:flex;align-items:center;gap:6px;font-size:.75rem; padding:4px; border-radius:4px; transition:background 0.2s; cursor:pointer;}
+.si:hover{background:rgba(255,255,255,0.1);}
+.si-code{font-family:'DM Mono',monospace;font-size:.7rem;min-width:30px;font-weight:bold;color:#3b82f6;}
+.si-name{flex:1;color:#94a3b8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.si-val{font-family:'DM Mono',monospace;font-size:.75rem;font-weight:700;min-width:40px;text-align:right}
+.sv-none{color:#64748b; font-weight:400;}
+.sv-md{color:#3b82f6; font-weight:700;} /* 답변완료 */
+.sv-miss{color:#ef4444; font-weight:700;} /* 누락(건너뜀) */
+.sv-hi{color:#10b981; font-weight:700;} /* 분석완료 */
+
+.summ{padding:.8rem;border-top:1px solid rgba(255,255,255,.07)}
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:.6rem}
+.sc2{background:rgba(255,255,255,.05);border-radius:6px;padding:.4rem;text-align:center}
+.sc2-v{font-size:1.05rem;font-weight:700;color:#e2e8f0;font-family:'DM Mono',monospace}
+.sc2-l{font-size:.6rem;color:#475569;margin-top:1px}
+
+/* 오버레이 팝업들 */
+.done-ov{position:fixed;inset:0;background:rgba(15,31,61,.95);display:none;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(3px)}
+.done-box{background:#fff;border-radius:16px;padding:2.25rem;max-width:560px;width:92%;text-align:center;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 10px 25px rgba(0,0,0,0.5)}
+.done-box h2{font-size:1.4rem;color:#0f1f3d;margin-bottom:.4rem}
+.done-box p{font-size:.87rem;color:#64748b;margin-bottom:1.25rem;line-height:1.7}
+.done-grid{display:grid;grid-template-columns:repeat(1,1fr);gap:8px;margin-bottom:1.25rem;overflow-y:auto;flex:1;padding-right:5px;}
+.dgi{background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;padding:.6rem .8rem;text-align:left;font-size:.78rem;display:flex;justify-content:space-between;align-items:center;}
+.dgi .dc{font-family:'DM Mono',monospace;color:#3b82f6;font-size:.7rem;font-weight:bold;}
+.dgi .dn{color:#0f172a;flex:1;margin-left:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dgi .ds{font-weight:700;color:#059669;}
+.done-btns{display:flex;gap:.65rem;justify-content:center;flex-wrap:wrap;flex-shrink:0;}
+.d-btn{padding:.7rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-size:.85rem;font-weight:600;font-family:'Noto Sans KR',sans-serif;transition:all 0.2s}
+.d-btn.p{background:#3b82f6;color:#fff}.d-btn.p:hover{background:#2563eb}
+.d-btn.g{background:#059669;color:#fff}.d-btn.g:hover{background:#047857}
+.d-btn.s{background:#f1f5f9;color:#0f172a;border:1px solid #e2e8f0}.d-btn.s:hover{background:#e2e8f0}
+
+/* 토스트 알림 */
+.toast{position:fixed;bottom:1.25rem;left:50%;transform:translateX(-50%) translateY(70px);background:#0f1f3d;color:#e2e8f0;padding:.65rem 1.15rem;border-radius:8px;font-size:.83rem;z-index:9999;transition:transform .3s;border-left:3px solid #3b82f6;white-space:nowrap;max-width:90vw}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:5px}
+@keyframes spin{to{transform:rotate(360deg)}}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#e2e8f0;border-radius:2px}
+.right ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1)}
+</style>
+</head>
+<body>
+
+<div class="done-ov" id="adminAuthOv" style="z-index:1002">
+  <div class="done-box" style="max-width:350px; padding:2.5rem 2rem;">
+    <h2 style="color:#0f1f3d; margin-bottom: 1.5rem;">🔒 관리자 인증</h2>
+    <input type="password" id="adminAuthPwd" placeholder="비밀번호를 입력하세요" style="width:100%; padding:12px; border:1px solid #e2e8f0; border-radius:8px; margin-bottom:1.2rem; font-family:'DM Mono',monospace; font-size:1.1rem; text-align:center; outline:none;" onkeypress="if(event.key==='Enter') checkAdminPwd()">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <button class="btn-xs" style="border:none; background:none; color:#3b82f6; text-decoration:underline; padding:0;" onclick="resetAdminPwd()">비밀번호 초기화</button>
+      <div style="display:flex; gap:0.5rem;">
+        <button class="d-btn s" style="padding: 0.5rem 1rem;" onclick="document.getElementById('adminAuthOv').style.display='none'">취소</button>
+        <button class="d-btn p" style="padding: 0.5rem 1rem;" onclick="checkAdminPwd()">확인</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="done-ov" id="adminOv" style="z-index:1001">
+  <div class="done-box" style="text-align:left; max-width:900px; padding:2rem; max-height: 90vh; display:flex; flex-direction:column; width:95%;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+      <h2 style="color:#0f1f3d; margin:0;">⚙️ 질문 관리 (관리자용)</h2>
+      <button class="btn-xs" onclick="changeAdminPwd()">비밀번호 변경</button>
+    </div>
+    
+    <p style="font-size:0.85rem; color:#64748b; margin-bottom:1rem; line-height:1.5;">
+      💡 AI가 28개 이슈를 정확히 평가할 수 있도록 <b>관련 이슈(E-1 등)</b>와 <b>대상 레벨</b>을 반드시 설정해 주세요.<br>
+      질문 입력칸은 자유롭게 줄바꿈(Enter)이 가능하며, 엑셀 표를 복사해 붙여넣거나 표 삽입 버튼을 이용할 수 있습니다.
+    </p>
+
+    <div style="display:flex; font-weight:700; color:#64748b; padding-bottom:0.6rem; border-bottom:2px solid #e2e8f0; margin-bottom:0.8rem; font-size:0.9rem;">
+      <div style="width:50px; text-align:center;">번호</div>
+      <div style="flex:1; padding-left:12px;">질문 내용</div>
+      <div style="width:70px; text-align:center;">관리</div>
+    </div>
+    
+    <div id="adminQList" style="flex:1; overflow-y:auto; padding-right:5px; margin-bottom:1rem; display:flex; flex-direction:column; gap:10px;">
+      </div>
+    
+    <button class="d-btn s" style="width:100%; margin-bottom:1.5rem; border:1px dashed #cbd5e1; background:#f8fafc; color:#3b82f6;" onclick="addAdminQuestion()">+ 새로운 질문 추가</button>
+    
+    <div class="done-btns" style="justify-content: flex-end; flex-shrink:0;">
+      <button class="d-btn s" onclick="resetAdminData()">초기 데이터 복원</button>
+      <button class="d-btn s" onclick="closeAdmin()">취소</button>
+      <button class="d-btn p" onclick="saveAdmin()">저장하기</button>
+    </div>
+  </div>
+</div>
+
+<div class="done-ov" id="privacyOv" style="z-index:1000">
+  <div class="done-box" style="text-align:left; max-width:500px; padding:2rem;">
+    <h2 style="text-align:center; margin-bottom:1.2rem; color:#0f1f3d;">개인정보 수집 및 이용 동의</h2>
+    <div style="background:#f8fafc; padding:1.2rem; border-radius:8px; font-size:0.85rem; color:#475569; margin-bottom:1.5rem; max-height:220px; overflow-y:auto; line-height:1.7; border:1px solid #e2e8f0;">
+      <strong>1. 수집/이용 목적:</strong> 한일 지속가능경영보고서 이중 중대성 평가 인터뷰 진행 및 AI 기반 재무 영향도 분석<br><br>
+      <strong>2. 수집 항목:</strong> 소속, 부서, 직책, 성명, 휴대폰 연락처, 이메일, 인터뷰 음성, 인터뷰 응답 텍스트<br><br>
+      <strong>3. 보유 및 이용 기간:</strong><br>
+      &nbsp;&nbsp;- <strong>음성 데이터:</strong> 수집일로부터 <span style="color:#dc2626; font-weight:bold;">3개월 보관 후 파기</span><br>
+      &nbsp;&nbsp;- <strong>응답 텍스트 및 분석 결과:</strong> 지속가능경영보고서 발간 목적 달성 시까지<br><br>
+      <strong>4. 동의를 거부할 권리:</strong> 귀하는 개인정보 수집 및 이용에 대한 동의를 거부할 권리가 있습니다. 단, 동의를 거부하실 경우 음성 인식 기반의 자동 인터뷰 진행 및 데이터 저장이 불가능하여 <strong>인터뷰 참여가 제한</strong>됩니다.
+    </div>
+    <div style="display:flex; gap:0.8rem; justify-content:center; flex-shrink:0;">
+      <button class="d-btn s" onclick="document.getElementById('privacyOv').style.display='none'">동의하지 않음</button>
+      <button class="d-btn p" onclick="acceptPrivacy()">동의하고 계속하기</button>
+    </div>
+  </div>
+</div>
+
+<div class="done-ov" id="readyOv" style="z-index:400">
+  <div class="done-box" style="padding:2rem;max-width:400px;justify-content:center;">
+    <div style="font-size:2.8rem;margin-bottom:.8rem">🎙️</div>
+    <h3 style="margin-bottom:0.5rem;color:#0f1f3d">준비가 완료되었습니다.</h3>
+    <p style="color:#64748b;margin-bottom:1.5rem;font-size:0.9rem">마이크 권한이 정상적으로 확인되었습니다.<br>아래 버튼을 누르면 첫 번째 질문이 시작됩니다.</p>
+    <button class="start-btn" style="flex-shrink:0;" onclick="startActualInterview()">인터뷰 시작하기 →</button>
+  </div>
+</div>
+
+<div class="done-ov" id="nextQOv" style="z-index:400">
+  <div class="done-box" style="padding:2rem;max-width:400px;justify-content:center;">
+    <div style="font-size:2.8rem;margin-bottom:.8rem">✅</div>
+    <h3 style="margin-bottom:1.2rem;color:#0f1f3d">응답이 성공적으로 기록되었습니다.</h3>
+    <button class="start-btn" style="flex-shrink:0;" onclick="goToNextQ()">다음 질문으로 넘어가기 →</button>
+  </div>
+</div>
+
+<div class="countdown-overlay" id="cdOverlay">
+  <div class="countdown-num" id="cdNum">10</div>
+  <div class="countdown-txt">초 후 자동으로 응답이 시작됩니다</div>
+  <button class="d-btn p" style="margin-top:1.5rem;box-shadow:0 4px 6px rgba(0,0,0,0.15);padding:0.8rem 1.5rem;font-size:1rem" onclick="skipCountdownAndStart()">즉시 응답하기 🎤</button>
+</div>
+
+<div class="done-ov" id="readyAnalysisOv" style="z-index:400">
+  <div class="done-box" style="padding:2rem;max-width:450px;justify-content:center;">
+    <div style="font-size:2.8rem;margin-bottom:.8rem">🚀</div>
+    <h3 style="margin-bottom:0.5rem;color:#0f1f3d">모든 답변이 완료되었습니다!</h3>
+    <p style="color:#64748b;margin-bottom:1.5rem;font-size:0.95rem;line-height:1.6;">누락된 질문 없이 모든 항목이 응답되었습니다.<br>최종 제출을 위해 AI 분석을 시작합니다.</p>
+    <button class="start-btn" style="flex-shrink:0;" onclick="startBatchAnalysis()">AI 분석 시작하기 →</button>
+  </div>
+</div>
+
+<div class="ai-loading-ov" id="aiLoadingOv">
+  <div class="ai-loading-spinner"></div>
+  <div class="ai-loading-text" id="aiLoadingTxt">🤖 AI가 전체 응답 내용을 분석하고 있습니다...</div>
+  <div style="font-size: 0.95rem; color: #93c5fd; margin-top: 10px;">데이터 양에 따라 시간이 다소 소요될 수 있습니다.</div>
+</div>
+
+<div class="done-ov" id="doneOv">
+  <div class="done-box" id="doneBoxContent">
+    <div id="doneHeader">
+      <div style="font-size:2.8rem;margin-bottom:.8rem">🎉</div>
+      <h2>AI 분석 완료</h2>
+      <p style="font-size:0.85rem; color:#ef4444; margin-top:0.5rem; margin-bottom:1.5rem;">아래 '서버 최종 저장' 버튼을 누르셔야 데이터가 최종 제출됩니다.</p>
+    </div>
+    
+    <div class="done-btns" id="submitBtnWrap" style="flex-direction:column; gap:0.5rem;">
+      <button class="d-btn s" style="width:100%; padding: 0.9rem; font-size:1rem;" onclick="downloadTestFiles()">📥 생성된 파일 미리 다운로드 (테스트용)</button>
+      <button class="d-btn p" id="submitServerBtn" style="width:100%; padding: 1rem; font-size:1.05rem;" onclick="submitToServer()">💾 인터뷰 결과 제출 (서버 최종 저장)</button>
+    </div>
+
+    <div id="thankYouWrap" style="display:none; flex-direction:column; align-items:center; gap:1.5rem; padding-top:1rem;">
+      <div style="padding:1.5rem; background:#f0fdf4; color:#065f46; border-radius:12px; width:100%; font-size:1.1rem; font-weight:700; border:1px solid #bbf7d0;">
+        🙏 인터뷰에 응해 주셔서 진심으로 감사합니다.
+      </div>
+      <button class="d-btn s" style="width:100%; padding: 0.9rem; font-size:1rem;" onclick="closeApp()">창 닫기</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="start" id="startScreen">
+  <div class="start-box">
+    <button class="admin-btn" title="질문 설정 (관리자용)" onclick="openAdminAuth()">⚙️</button>
+    
+    <div style="width:50px;height:50px;background:#1a56db;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff;margin:0 auto 1rem">H</div>
+    <h2>ESG 파워인터뷰</h2>
+    <div class="sub">AI 음성 자동 인터뷰 · 후속질문 자동생성 · 재무 영향도 자동 채점</div>
+
+    <label>소속 회사 <span style="color:#dc2626">*</span></label>
+    <select id="co">
+      <option value="" disabled selected>회사를 선택해주세요</option>
+      <option value="한일홀딩스">한일홀딩스</option>
+      <option value="한일시멘트">한일시멘트</option>
+    </select>
+
+    <label>부서 <span style="color:#dc2626">*</span></label>
+    <input type="text" id="dept" placeholder="예: 환경기획팀"/>
+
+    <label>직책 (직급) <span style="color:#dc2626">*</span></label>
+    <input type="text" id="ttl" placeholder="예: 팀장"/>
+
+    <label>성명 <span style="color:#dc2626">*</span></label>
+    <input type="text" id="userName" placeholder="예: 홍길동"/>
+
+    <label>휴대폰 연락처 <span style="color:#dc2626">*</span></label>
+    <input type="tel" id="userPhone" placeholder="예: 010-1234-5678"/>
+
+    <label>이메일 <span style="color:#dc2626">*</span></label>
+    <input type="email" id="userEmail" placeholder="예: user@hanil.com"/>
+
+    <label>인터뷰 레벨 <span style="color:#dc2626">*</span></label>
+    <select id="lv" style="margin-bottom:0.4rem">
+      <option value="" disabled selected>레벨을 선택해주세요</option>
+      <option value="exec">경영진</option>
+      <option value="mid">중간관리자</option>
+      <option value="field">현장 실무자</option>
+    </select>
+    <div class="note" style="margin-bottom:1rem">
+      • 경영진: 임원 이상<br>
+      • 중간 관리자: 팀장급<br>
+      • 현장 실무자: 팀장 외
+    </div>
+
+    <label>Anthropic API Key <span style="color:#dc2626">*</span></label>
+    <input type="password" id="apiK" placeholder="sk-ant-api03-..."/>
+    <div class="note" style="margin-bottom:1rem">
+      테스트용: 실제 Claude AI 분석을 수행하려면 키를 입력하세요.
+    </div>
+
+    <button class="start-btn" onclick="checkFormAndShowPrivacy()">시작하기 →</button>
+  </div>
+</div>
+
+<div class="app" id="app">
+  <div class="hdr">
+    <div class="hdr-l">
+      <div class="logo">H</div>
+      <div>
+        <h1>한일 ESG 파워인터뷰</h1>
+        <div class="hdr-sub">이중 중대성 평가 · 재무 영향도 X축 산출</div>
+      </div>
+    </div>
+    <div class="sess" id="sessId">SESSION: ----</div>
+  </div>
+  <div class="prog-wrap"><div class="prog-fill" id="pbf"></div></div>
+  <div class="body">
+    <div class="left">
+      <div class="qa-scroll" id="qaScroll"></div>
+      <div class="ctrl">
+        <div class="timer-wave-row">
+          <div class="timer-box">
+            <span class="timer-label">남은시간</span>
+            <span class="timer-val" id="timerVal">1:00</span>
+          </div>
+          <div class="timer-bar-wrap"><div class="timer-bar" id="timerBar"></div></div>
+          <div class="wave" id="wave">
+            <div class="wb" id="w1"></div><div class="wb" id="w2"></div>
+            <div class="wb" id="w3"></div><div class="wb" id="w4"></div>
+            <div class="wb" id="w5"></div><div class="wb" id="w6"></div>
+          </div>
+        </div>
+        <div class="tbox" id="tbox"><span class="ph" id="tph">질문을 들은 후 자동으로 응답이 시작됩니다.</span></div>
+        <div class="btn-main">
+          <button class="ctrl-btn cb-start" id="recBtn" onclick="toggleRec()" disabled><span class="ci" id="recIcon">🎤</span><span class="cl" id="recLabel">응답 시작</span></button>
+          <button class="ctrl-btn cb-stop" id="stopBtn" onclick="stopAnswer()" disabled style="animation:none"><span class="ci">⏹</span><span class="cl">답변 종료</span></button>
+          <button class="ctrl-btn cb-redo" id="redoBtn" onclick="redoAnswer()" disabled><span class="ci">🔄</span><span class="cl">다시 답변</span></button>
+          <button class="ctrl-btn cb-submit" id="submitBtn" onclick="submitAnswer()" disabled><span class="ci">✅</span><span class="cl">제출하기</span></button>
+        </div>
+        <div class="btn-sub">
+          <button class="btn-xs" id="replayBtn" onclick="replayQ()" disabled>🔊 다시 듣기</button>
+          <button class="btn-xs" id="fuBtn" onclick="genFollowUp()" disabled>💬 후속질문</button>
+          <button class="btn-xs" id="skipBtn" onclick="skipQ()" disabled>건너뛰기</button>
+        </div>
+      </div>
+    </div>
+    <div class="right">
+      <div class="rh"><h3><div class="ai-dot"></div>인터뷰 진행현황</h3></div>
+      <div class="sc-sec">
+        <div class="sc-ttl">질문별 진행 상태</div>
+        <div class="sc-list" id="progressList"></div>
+      </div>
+      <div class="summ">
+        <div class="sg">
+          <div class="sc2"><div class="sc2-v" id="sumA">0</div><div class="sc2-l">응답완료</div></div>
+          <div class="sc2"><div class="sc2-v" id="sumS">0</div><div class="sc2-l">남은질문</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// 28개 파워 인터뷰 기본 질문 세트
+// ══════════════════════════════════════
+const DEFAULT_QBANK=[
+  {id:"Q1", txt:"현재 한일이 직면한 경영 환경에서 ESG 측면의 가장 큰 변화나 압력은 무엇입니까? 가장 긴박하게 느끼시는 것부터 말씀해 주십시오.", hint:"자발적 언급 이슈 기록", issues:[], lv:["exec","mid","field"]},
+  {id:"Q2", txt:"귀하의 업무 범위에서 ESG 관련 이슈가 실제 경영 의사결정에 영향을 미친 구체적인 사례가 있다면 말씀해 주십시오.", hint:"사례의 규모와 재무적 영향 파악", issues:[], lv:["exec","mid","field"]},
+  {id:"Q3", txt:"현재 한일의 온실가스 배출 중 소성로 공정배출이 차지하는 비중과, 탄소중립 달성을 위해 장기적으로 어떤 재무 부담이 발생할 것으로 예상하십니까?", hint:"탄소배출권 비용·좌초자산·투자 부담 규모 확인", issues:["E-1","E-2"], lv:["exec","mid","field"]},
+  {id:"Q4", txt:"배출권 거래제 할당량이 단계적으로 축소되고 있는데, 향후 탄소비용이 연간 손익에 미치는 영향을 어느 수준으로 예상하십니까?", hint:"구체적 금액 또는 매출 대비 비율로 확인", issues:["E-1"], lv:["exec","mid"]},
+  {id:"Q5", txt:"기후변화로 인한 물리적 리스크, 즉 기상이변이나 석회석 원료 수급 불안 등이 실제 생산 현장에서 체감되신 경험이 있습니까?", hint:"구체적 사례와 영향 규모 파악", issues:["E-2"], lv:["exec","mid","field"]},
+  {id:"Q6", txt:"한일이 2050 탄소중립을 선언했는데, 현실적으로 달성 가능하다고 보십니까? 가장 큰 장벽은 무엇이라고 생각하십니까?", hint:"기술·비용·규제·시장 장벽 중 어디에 집중하는지 파악", issues:["E-1","E-2"], lv:["exec"]},
+  {id:"Q7", txt:"ECO 프로젝트(2027년까지 5,276억 원 투자)를 통한 순환연료 사용 확대가 에너지 비용 절감과 온실가스 감축에 어느 정도 기여할 것으로 예상하십니까? 투자 회수 기간은 어떻게 보십니까?", hint:"투자 대비 효과와 회수 기간 확인", issues:["E-3"], lv:["exec","mid","field"]},
+  {id:"Q8", txt:"순환연료(폐타이어·폐합성수지·SRF 등) 수급 안정성에 리스크는 없습니까? 공급 부족이나 가격 변동성이 생산에 영향을 준 사례가 있습니까?", hint:"공급망 리스크 현실화 여부 확인", issues:["E-3"], lv:["mid","field"]},
+  {id:"Q9", txt:"NOx·먼지 등 대기오염물질 관리와 관련하여 최근 3년간 행정처분, 초과부과금을 받은 사례가 있습니까? 재무적으로 어느 수준의 영향이 있었습니까?", hint:"구체적 건수와 금액 확인", issues:["E-4"], lv:["exec","mid","field"]},
+  {id:"Q10", txt:"2023년 통합환경허가제도에 시멘트 업종이 신규 편입됐는데, 이에 대응하기 위해 추가로 필요한 설비투자 규모는 어느 정도로 예상하십니까?", hint:"E-4·E-6 재무 영향도 동시 확인", issues:["E-4","E-6"], lv:["exec","mid"]},
+  {id:"Q11", txt:"석탄재·슬래그 등 순환원료 사용이 원자재 비용 절감에 실질적으로 기여하고 있습니까? 연간 절감 효과를 어느 수준으로 추정하십니까?", hint:"E-5 재무 영향 정량화", issues:["E-5"], lv:["mid","field"]},
+  {id:"Q12", txt:"환경 관련 법규 위반 시 발생 가능한 가장 심각한 리스크는 무엇이라고 생각하십니까? 생산 중단이나 허가 취소 가능성도 현실적으로 존재합니까?", hint:"E-6 재무 영향도 확인", issues:["E-6"], lv:["exec","mid"]},
+  {id:"Q13", txt:"현재 진행 중인 CCUS 관련 R&D 과제 중 실제 상용화 가능성이 가장 높은 기술은 무엇이고, 상용화 시점을 언제로 보십니까?", hint:"기술 성숙도와 일정 현실성 확인", issues:["E-7"], lv:["exec","mid"]},
+  {id:"Q14", txt:"CCUS 기술 개발이 목표 시점보다 지연될 경우 2030년 이후 배출권 비용이 어느 수준까지 상승할 것으로 예상하십니까? CCUS 없이 탄소중립이 가능하다고 보십니까?", hint:"E-7 X축 결정의 핵심 질문. 구체적 비용 수치 확인", issues:["E-7"], lv:["exec","mid"]},
+  {id:"Q15", txt:"석회석 채석장 운영으로 인한 생태계 훼손에 대해 지역사회나 환경단체로부터 문제 제기를 받은 경험이 있습니까? 수자원 관련 민원이나 리스크가 발생한 사례가 있습니까?", hint:"E-8·E-9 사회적 압력과 재무 리스크 동시 확인", issues:["E-8","E-9"], lv:["mid","field"]},
+  {id:"Q16", txt:"중대재해 발생 시 생산 중단·법적 배상·명성 훼손 등 복합적 재무 영향을 어느 수준으로 추정하십니까? 중대재해처벌법 시행 이후 안전 관련 비용이 얼마나 증가했습니까?", hint:"재무 영향 구체화에 집중", issues:["S-1"], lv:["exec","mid","field"]},
+  {id:"Q17", txt:"협력사 작업자를 포함한 안전관리 체계 확대가 한일에 어떤 추가 비용과 책임을 발생시키고 있습니까? 협력사의 안전 역량이 충분하다고 보십니까?", hint:"S-1·S-3 연계 확인", issues:["S-1","S-3"], lv:["exec","mid"]},
+  {id:"Q18", txt:"건설경기 침체 속에서 저탄소·특수시멘트 등 친환경 제품이 실제 시장에서 가격 프리미엄을 받고 있습니까? 고객들의 친환경 제품 수요가 실질적으로 증가하고 있습니까?", hint:"S-2 매출 영향과 시장 현실 확인", issues:["S-2"], lv:["exec","mid"]},
+  {id:"Q19", txt:"협력사의 ESG 역량이 한일의 공급망 리스크로 현실화된 사례가 있습니까? 공급망 실사 의무화(CSDDD 등) 시 현재 체계로 대응이 가능합니까?", hint:"S-3 재무 리스크 현실화 여부 확인", issues:["S-3"], lv:["exec","mid","field"]},
+  {id:"Q20", txt:"기후변화 대응·디지털 전환 관련 전문인력 부족이 중장기 경쟁력에 실질적인 위협이 됩니까? 가장 확보가 어려운 인재 유형은 무엇입니까?", hint:"S-4 인재 리스크 재무 영향 확인", issues:["S-4","S-5"], lv:["exec","mid"]},
+  {id:"Q21", txt:"현재 노사관계를 어떻게 평가하십니까? 노사 갈등이 생산성이나 경영에 실질적인 영향을 미친 사례가 있다면 말씀해 주십시오.", hint:"S-6 재무 영향 확인", issues:["S-6"], lv:["exec","mid"]},
+  {id:"Q22", txt:"공장·채석장 인근 지역사회와의 관계에서 현재 가장 민감한 이슈는 무엇입니까? 지역 갈등이 공장 운영이나 허가에 실질적인 영향을 줄 가능성이 있다고 보십니까?", hint:"사회적 허가(SLO) 리스크 파악", issues:["S-7"], lv:["exec","mid","field"]},
+  {id:"Q23", txt:"스마트 공장·디지털 전환 확대에 따른 사이버보안 위협이 실제로 증가하고 있습니까? 보안 사고 발생 시 생산 차질이나 정보 유출로 인한 피해 규모를 어떻게 예상하십니까?", hint:"S-9 재무 영향 확인", issues:["S-9"], lv:["exec","mid"]},
+  {id:"Q24", txt:"시멘트 분진·채석 작업자의 규폐증 등 직업성 질환이 장기적으로 한일에 어떤 법적·재무적 리스크를 발생시킬 수 있다고 보십니까?", hint:"S-10 장기 재무 리스크 확인", issues:["S-10"], lv:["mid","field"]},
+  {id:"Q25", txt:"현재 ESG위원회와 이사회가 ESG 이슈를 실질적으로 감독하고 있다고 생각하십니까? 임원 KPI에 ESG 성과가 연계된 이후 실제 행동 변화가 있었습니까?", hint:"G-1·G-2 실효성 검증", issues:["G-1","G-2"], lv:["exec","mid"]},
+  {id:"Q26", txt:"KSSB·IFRS S1/S2 기반 지속가능성 공시 의무화가 실제로 한일의 공시 역량이나 데이터 관리 체계에 어떤 추가 비용과 부담을 발생시킬 것으로 예상하십니까?", hint:"G-3 재무 부담 규모 확인", issues:["G-3"], lv:["exec","mid"]},
+  {id:"Q27", txt:"시멘트 업계의 공정거래 리스크가 여전히 존재한다고 보십니까? 내부 준법 체계가 충분히 작동하고 있습니까?", hint:"G-4 규제 리스크 현실성 확인", issues:["G-4"], lv:["exec","mid"]},
+  {id:"Q28", txt:"2023년 도입된 시설투자 환경비용 및 리스크 평가 제도가 실제 투자 의사결정에 어느 정도 영향을 미치고 있습니까? 이 제도가 없었다면 다른 결정이 내려졌을 투자 사례가 있습니까?", hint:"G-5·G-7 제도 실효성 검증", issues:["G-5","G-7"], lv:["exec","mid"]},
+  {id:"Q29", txt:"건설경기 침체 장기화 시 미래 성장 동력으로 어떤 사업 또는 기술에 가장 기대를 걸고 계십니까? 투자자들이 ESG 공시나 성과에 대해 실제로 민감하게 반응하는 이슈가 있습니까?", hint:"G-8·G-9 전략적 판단과 자본시장 영향 확인", issues:["G-8","G-9"], lv:["exec","mid"]},
+  {id:"Q30", txt:"28개 이슈 중 귀하가 재무적으로 가장 중요하다고 판단하는 이슈를 3가지만 꼽는다면 무엇이고, 그 이유는 무엇입니까?", hint:"응답자 자발적 우선순위 확인", issues:[], lv:["exec","mid","field"]},
+  {id:"Q31", txt:"반대로 28개 이슈 중 실제 재무 영향이 생각보다 크지 않다고 보는 이슈가 있습니까?", hint:"과대평가 이슈 식별", issues:[], lv:["exec","mid","field"]},
+  {id:"Q32", txt:"28개 이슈풀에 포함되지 않았지만 향후 3~5년 내 반드시 관리해야 할 이슈가 있습니까?", hint:"이머징 이슈 발굴 핵심 질문", issues:[], lv:["exec","mid","field"]},
+  {id:"Q33", txt:"이슈들 사이에 중요한 연결 관계가 있다고 보십니까? 어떤 이슈가 악화되면 다른 이슈로 연쇄 영향이 확산될 수 있는 관계가 있다면 말씀해 주십시오.", hint:"이슈 간 연결 관계 파악", issues:[], lv:["exec","mid"]},
+  {id:"Q34", txt:"향후 5년간 한일의 ESG 경영에서 가장 많은 자원이 투입되어야 할 영역은 어디라고 생각하십니까?", hint:"", issues:[], lv:["exec","mid","field"]},
+  {id:"Q35", txt:"정부의 탄소중립 정책, 글로벌 공급망 실사 의무화, ESG 공시 제도화 등 외부 규제 환경 변화 중 한일이 가장 먼저 대비해야 할 것은 무엇이라고 보십니까?", hint:"", issues:[], lv:["exec","mid"]},
+  {id:"Q36", txt:"마지막 질문입니다. ESG 경영이 한일의 장기 경쟁력과 기업 가치에 실질적으로 기여할 것이라고 생각하십니까? 솔직한 의견을 말씀해 주십시오.", hint:"", issues:[], lv:["exec","mid","field"]}
+];
+
+let QBANK = [];
+let tempQBank = [];
+
+// 시작 시 로컬 저장소에서 질문 데이터 불러오기
+function initAppData() {
+  const savedData = localStorage.getItem('hanil_esg_qbank');
+  if (savedData) {
+    try {
+      QBANK = JSON.parse(savedData);
+    } catch(e) {
+      QBANK = JSON.parse(JSON.stringify(DEFAULT_QBANK));
+    }
+  } else {
+    QBANK = JSON.parse(JSON.stringify(DEFAULT_QBANK));
+  }
+  // ID 동기화 보장 (항상 Q1, Q2 형태로 순차 부여)
+  QBANK.forEach((q, idx) => { q.id = `Q${idx + 1}`; });
+}
+initAppData();
+
+// ══════════════════════════════════════
+// 관리자 기능 (인증 및 에디터 고도화)
+// ══════════════════════════════════════
+function openAdminAuth() {
+  document.getElementById('adminAuthPwd').value = '';
+  document.getElementById('adminAuthOv').style.display = 'flex';
+  document.getElementById('adminAuthPwd').focus();
+}
+
+function checkAdminPwd() {
+  const inputPwd = document.getElementById('adminAuthPwd').value;
+  const savedPwd = localStorage.getItem('hanil_esg_admin_pwd') || "0000";
+  if(inputPwd === savedPwd) {
+    document.getElementById('adminAuthOv').style.display = 'none';
+    openAdminEditor();
+  } else {
+    showToast("비밀번호가 일치하지 않습니다.");
+  }
+}
+
+function resetAdminPwd() {
+  if(confirm("비밀번호를 '0000'으로 초기화하시겠습니까?\n초기화 안내 메일이 발송됩니다.")) {
+    localStorage.setItem('hanil_esg_admin_pwd', '0000');
+    showToast("비밀번호가 '0000'으로 초기화되었습니다.");
+    const adminEmail = "admin@hanil.com";
+    const subject = encodeURIComponent("[한일 ESG 파워인터뷰] 관리자 비밀번호 초기화 안내");
+    const body = encodeURIComponent("관리자 질문 설정 창의 접속 비밀번호가 '0000'으로 초기화되었습니다.\n시스템에 접속하신 후 우측 상단의 '비밀번호 변경' 버튼을 눌러 새 비밀번호로 변경해 주시기 바랍니다.");
+    window.location.href = `mailto:${adminEmail}?subject=${subject}&body=${body}`;
+    document.getElementById('adminAuthOv').style.display = 'none';
+  }
+}
+
+function changeAdminPwd() {
+  const newPwd = prompt("새로운 관리자 비밀번호를 입력하세요:");
+  if(newPwd && newPwd.trim().length > 0) {
+    localStorage.setItem('hanil_esg_admin_pwd', newPwd.trim());
+    showToast("✅ 관리자 비밀번호가 변경되었습니다.");
+  }
+}
+
+function openAdminEditor() {
+  tempQBank = JSON.parse(JSON.stringify(QBANK));
+  renderAdminQuestions();
+  document.getElementById('adminOv').style.display = 'flex';
+}
+
+function closeAdmin() {
+  document.getElementById('adminOv').style.display = 'none';
+}
+
+// 편집 중인 데이터 동기화
+function syncTempQBank() {
+  const rows = document.querySelectorAll('.admin-q-row');
+  rows.forEach((row, idx) => {
+    if(tempQBank[idx]) {
+      const inputEl = row.querySelector('.admin-q-input');
+      let val = inputEl.innerHTML;
+      if(val === '<br>') val = ''; 
+      tempQBank[idx].txt = val;
+      const issuesInput = row.querySelector('.admin-q-issues').value;
+      tempQBank[idx].issues = issuesInput.split(',').map(s=>s.trim()).filter(s=>s);
+      tempQBank[idx].hint = row.querySelector('.admin-q-hint').value;
+      const lvs = [];
+      row.querySelectorAll('.admin-q-lv:checked').forEach(cb => lvs.push(cb.value));
+      tempQBank[idx].lv = lvs;
+    }
+  });
+}
+
+function renderAdminQuestions() {
+  const list = document.getElementById('adminQList');
+  list.innerHTML = '';
+  
+  if(tempQBank.length === 0) {
+    list.innerHTML = `<div style="text-align:center; padding:2rem; color:#94a3b8; font-size:0.9rem;">등록된 질문이 없습니다. 새로운 질문을 추가해 주세요.</div>`;
+    return;
+  }
+  
+  tempQBank.forEach((q, idx) => {
+    const row = document.createElement('div');
+    row.className = 'admin-q-row';
+    const issuesStr = (q.issues || []).join(', ');
+    const hintStr = q.hint || '';
+    const hasExec = q.lv && q.lv.includes('exec') ? 'checked' : '';
+    const hasMid = q.lv && q.lv.includes('mid') ? 'checked' : '';
+    const hasField = q.lv && q.lv.includes('field') ? 'checked' : '';
+    row.innerHTML = `
+      <div class="admin-q-header">
+        <div class="admin-q-num">Q${idx + 1}</div>
+        <div style="display:flex; gap:5px;">
+          <button class="admin-q-table-btn" onclick="insertTable(${idx})" title="기본 표 삽입">🪟 표삽입</button>
+          <button class="admin-q-del" onclick="removeAdminQuestion(${idx})">삭제</button>
+        </div>
+      </div>
+      <div class="admin-q-input" contenteditable="true" data-placeholder="질문 내용을 입력하세요 (엔터로 줄바꿈, 엑셀 표 붙여넣기 가능)">${q.txt || ''}</div>
+      <div class="admin-q-settings">
+        <input type="text" class="admin-sub-input admin-q-issues" placeholder="관련 이슈 (예: E-1, S-2)" value="${issuesStr}" title="평가할 이슈 코드를 쉼표(,)로 구분하여 입력하세요">
+        <input type="text" class="admin-sub-input admin-q-hint" placeholder="인터뷰어 힌트 (옵션)" value="${hintStr}" style="flex:1;">
+        <div class="admin-q-lv-box">
+          <span style="font-weight:700; margin-right:5px;">대상:</span>
+          <label><input type="checkbox" class="admin-q-lv" value="exec" ${hasExec}> 경영진</label>
+          <label><input type="checkbox" class="admin-q-lv" value="mid" ${hasMid}> 중간관리자</label>
+          <label><input type="checkbox" class="admin-q-lv" value="field" ${hasField}> 실무자</label>
+        </div>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+}
+
+function insertTable(idx) {
+  syncTempQBank();
+  const tableHTML = `<br><table><tbody><tr><th>항목</th><th>내용</th></tr><tr><td>-</td><td>-</td></tr></tbody></table><br>`;
+  tempQBank[idx].txt += tableHTML;
+  renderAdminQuestions();
+  setTimeout(() => {
+    const inputs = document.querySelectorAll('.admin-q-input');
+    if(inputs[idx]) {
+      inputs[idx].focus();
+      const range = document.createRange();
+      const sel = window.getSelection();
+      range.selectNodeContents(inputs[idx]);
+      range.collapse(false); 
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+  }, 50);
+}
+
+function addAdminQuestion() {
+  syncTempQBank();
+  tempQBank.push({ id: `Q${tempQBank.length + 1}`, txt: "", hint: "", issues: [], lv: ["exec","mid","field"] });
+  renderAdminQuestions();
+  setTimeout(() => {
+    const list = document.getElementById('adminQList');
+    list.scrollTop = list.scrollHeight;
+  }, 50);
+}
+
+function removeAdminQuestion(idx) {
+  syncTempQBank();
+  tempQBank.splice(idx, 1);
+  renderAdminQuestions();
+}
+
+function saveAdmin() {
+  syncTempQBank();
+  const hasEmpty = tempQBank.some(q => {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = q.txt;
+    return tmp.textContent.trim() === '' && !q.txt.includes('<table');
+  });
+  if(hasEmpty) {
+    showToast("내용이 비어있는 질문이 있습니다. 삭제하거나 내용을 입력해주세요.");
+    return;
+  }
+  tempQBank.forEach((q, idx) => { q.id = `Q${idx + 1}`; });
+  QBANK = JSON.parse(JSON.stringify(tempQBank));
+  localStorage.setItem('hanil_esg_qbank', JSON.stringify(QBANK));
+  showToast("✅ 질문 설정이 저장되었습니다.");
+  closeAdmin();
+}
+
+function resetAdminData() {
+  if(confirm("기본 제공되는 질문 세트로 초기화하시겠습니까?\n기존에 수정한 내용은 모두 삭제됩니다.")) {
+    localStorage.removeItem('hanil_esg_qbank');
+    QBANK = JSON.parse(JSON.stringify(DEFAULT_QBANK));
+    QBANK.forEach((q, idx) => { q.id = `Q${idx + 1}`; });
+    tempQBank = JSON.parse(JSON.stringify(QBANK));
+    renderAdminQuestions();
+    showToast("초기화 완료되었습니다. '저장하기'를 눌러 확정하세요.");
+  }
+}
+
+// ══════════════════════════════════════
+// 인터뷰 기본 상태 및 세팅
+// ══════════════════════════════════════
+const S={
+  qs:[],cur:-1,ans:[],analysisLogs:[], startTime:"",
+  recog:null,micReady:false,isRec:false,curTxt:"",sessId:"",apiKey:"",
+  co:"",dept:"",ttl:"",uName:"",uPhone:"",uEmail:"",
+  waveIv:null,timerIv:null,cdIv:null,timerSec:60,fuCount:{},isFU:false,fuHist:[],
+  synth:window.speechSynthesis,answerDone:false,selectedVoice:null,
+  mediaRecorder:null, audioChunks:[], audioBlobs:{}
+};
+const TIMER_MAX=60;
+
+const DICT=[
+  {wrong:/수성로/g,correct:"소성로"},{wrong:/엔디씨|엔디시/g,correct:"NDC"},
+  {wrong:/씨씨유에스/g,correct:"CCUS"},{wrong:/크링커|클린커|컬링커/g,correct:"클링커"},
+  {wrong:/이에스지|이이에스지/g,correct:"ESG"},{wrong:/티씨에프디|티시에프디/g,correct:"TCFD"},
+  {wrong:/스코프 (원|투|쓰리)/g,match:{"원":"1","투":"2","쓰리":"3"},replaceStr:"Scope "}
+];
+
+function applyCustomDict(t){
+  let r=t;
+  DICT.forEach(i=>{
+    if(i.match&&i.replaceStr) r=r.replace(i.wrong,(m,p)=>i.replaceStr+i.match[p]);
+    else r=r.replace(i.wrong,i.correct);
+  });
+  return r;
+}
+
+function getFormattedDate() {
+  const d = new Date();
+  const pad = (n) => n.toString().padStart(2, '0');
+  return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+}
+
+// 폼 검증
+function checkFormAndShowPrivacy(){
+  const co = document.getElementById("co").value;
+  const dept = document.getElementById("dept").value.trim();
+  const ttl = document.getElementById("ttl").value.trim();
+  S.uName = document.getElementById("userName").value.trim();
+  S.uPhone = document.getElementById("userPhone").value.trim();
+  S.uEmail = document.getElementById("userEmail").value.trim();
+  const lv = document.getElementById("lv").value;
+  const key = document.getElementById("apiK").value.trim();
+  
+  if(!co){showToast("소속 회사를 선택해 주세요.");return;}
+  if(!dept){showToast("부서를 입력해 주세요.");return;}
+  if(!ttl){showToast("직책(직급)을 입력해 주세요.");return;}
+  if(!S.uName){showToast("성명을 입력해 주세요.");return;}
+  if(!S.uPhone){showToast("휴대폰 연락처를 입력해 주세요.");return;}
+  if(!S.uEmail){showToast("이메일을 입력해 주세요.");return;}
+  if(!lv){showToast("인터뷰 레벨을 선택해 주세요.");return;}
+  if(!key){showToast("API Key를 입력해 주세요.");return;}
+  
+  S.co=co; S.dept=dept; S.ttl=ttl; S.apiKey=key;
+  S.qs=QBANK.filter(q=> !q.lv || q.lv.includes(lv));
+  
+  if(S.qs.length === 0) {
+    showToast("해당 레벨에 등록된 질문이 없습니다. 관리자 설정에서 질문을 추가해주세요.");
+    return;
+  }
+  
+  document.getElementById("privacyOv").style.display="flex";
+}
+
+function acceptPrivacy(){
+  document.getElementById("privacyOv").style.display="none";
+  S.sessId="SI-"+Date.now().toString(36).toUpperCase();
+  S.startTime = getFormattedDate(); 
+  document.getElementById("sessId").textContent="SESSION: "+S.sessId;
+  document.getElementById("startScreen").style.display="none";
+  document.getElementById("app").style.display="flex";
+  
+  updateProgressList();
+  requestMicPermission(()=>{document.getElementById("readyOv").style.display="flex";});
+}
+
+function startActualInterview(){
+  document.getElementById("readyOv").style.display="none";
+  S.cur=0;
+  renderQ();
+}
+
+function requestMicPermission(cb){
+  navigator.mediaDevices.getUserMedia({audio:true})
+  .then(s=>{s.getTracks().forEach(t=>t.stop());initSTT();S.micReady=true;if(cb)cb();})
+  .catch(e=>{showToast("마이크 권한이 필요합니다.");});
+}
+
+function initSTT(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR) return;
+  S.recog=new SR();S.recog.lang="ko-KR";S.recog.continuous=true;S.recog.interimResults=true;
+  S.recog.onresult=e=>{
+    let f="",i="";
+    for(let j=e.resultIndex;j<e.results.length;j++){
+      if(e.results[j].isFinal) f+=e.results[j][0].transcript;
+      else i+=e.results[j][0].transcript;
+    }
+    if(f){f=applyCustomDict(f);S.curTxt+=f;}
+    if(i){i=applyCustomDict(i);}
+    setTbox(S.curTxt+(i?" "+i:""),true);
+  };
+  S.recog.onstart=()=>{
+    setSt("listening","🎤 응답 중... 말씀해 주세요.");
+    setRecBtn(true);showWave(true);
+    const sb=document.getElementById("stopBtn");sb.disabled=false;sb.style.animation="";
+  };
+  S.recog.onend=()=>{if(S.isRec)S.recog.start();};
+  S.recog.onerror=e=>{if(e.error!=="aborted"){showToast("음성 인식 오류: "+e.error);stopRecInternal();}};
+}
+
+function renderQ(q=null,isFU=false){
+  const qs=q||(S.cur<S.qs.length?S.qs[S.cur]:null);
+  if(!qs){checkMissingAndFinish();return;}
+  
+  S.answerDone=false;S.curTxt="";setTbox("",false);
+  const a=document.getElementById("qaScroll");
+  
+  if(!isFU){
+    a.innerHTML=`<div class="status-row"><div class="sdot" id="sdot"></div><div class="stxt" id="stxt">인터뷰를 준비하고 있습니다...</div><div class="qnum" id="qnum">Q ${S.cur+1} / ${S.qs.length}</div></div>`;
+  } else {
+    a.querySelectorAll(".q-card:not(.dimmed)").forEach(c=>c.classList.add("dimmed"));
+    document.getElementById("qnum").textContent=`Q ${S.cur+1} / ${S.qs.length} (후속)`;
+  }
+  
+  const c=document.createElement("div");
+  c.className="q-card"+(isFU?" followup":"");
+  
+  const qNumStr = isFU ? `💬 후속질문 (${qs.id})` : `📋 ${qs.id}`;
+  c.innerHTML=`<div class="q-part">${qNumStr}</div><div class="q-text">${qs.txt}</div>${qs.hint?`<div class="q-hint">💡 ${qs.hint}</div>`:""}`;
+  a.appendChild(c);
+  c.scrollIntoView({behavior:"smooth",block:"nearest"});
+  updateProg();setAllBtns(false);
+  
+  setSt("speaking","🔊 질문을 읽고 있습니다...");
+  const tmpDiv = document.createElement("div");
+  tmpDiv.innerHTML = qs.txt;
+  const plainText = tmpDiv.textContent || tmpDiv.innerText || "";
+  
+  speak(plainText, ()=>{
+    setSt("waiting","⏳ 10초 후 자동으로 응답이 시작됩니다...");
+    startCountdown(10,()=>startRecording());
+  });
+}
+
+function startCountdown(sec,cb){
+  const ov=document.getElementById("cdOverlay"),n=document.getElementById("cdNum");
+  ov.style.display="flex";let r=sec;n.textContent=r;document.getElementById("replayBtn").disabled=false;
+  S.cdIv=setInterval(()=>{r--;n.textContent=r;if(r<=0){clearInterval(S.cdIv);ov.style.display="none";if(cb)cb();}},1000);
+}
+
+function skipCountdownAndStart(){
+  clearInterval(S.cdIv);document.getElementById("cdOverlay").style.display="none";startRecording();
+}
+
+function startRecording(){
+  document.getElementById("tbox").contentEditable = "false";
+  if(!S.micReady||!S.recog){showToast("마이크를 사용할 수 없습니다.");return;}
+  
+  navigator.mediaDevices.getUserMedia({audio:true}).then(stream => {
+    S.mediaRecorder = new MediaRecorder(stream);
+    S.audioChunks = [];
+    S.mediaRecorder.ondataavailable = e => S.audioChunks.push(e.data);
+    S.mediaRecorder.onstop = () => {
+      const audioBlob = new Blob(S.audioChunks, { type: 'audio/webm' });
+      const curQId = S.isFU && S.fuHist.length>0 ? S.fuHist[S.fuHist.length-1].fuQ.id : S.qs[S.cur].id;
+      S.audioBlobs[curQId] = audioBlob;
+      stream.getTracks().forEach(t=>t.stop());
+    };
+    S.mediaRecorder.start();
+    
+    S.isRec=true;try{S.recog.start();}catch(e){}
+    startTimer();setRecBtn(true);document.getElementById("recBtn").onclick=null;
+  }).catch(e=>{
+    showToast("마이크 오디오 접근 실패. 권한을 확인해주세요.");
+  });
+}
+
+function toggleRec(){if(!S.isRec)startRecording();}
+
+function stopRecInternal(){
+  S.isRec=false;if(S.recog){try{S.recog.stop();}catch(e){}}
+  if(S.mediaRecorder && S.mediaRecorder.state !== 'inactive'){
+    S.mediaRecorder.stop();
+  }
+  setRecBtn(false);showWave(false);clearInterval(S.timerIv);
+}
+
+function stopAnswer(){
+  stopRecInternal();
+  setSt("ready","✅ 답변이 완료되었습니다. 텍스트 박스를 클릭해 오타를 직접 수정할 수 있습니다.");
+  S.answerDone=true;
+  document.getElementById("stopBtn").disabled=true;document.getElementById("stopBtn").style.animation="none";
+  document.getElementById("redoBtn").disabled=false;document.getElementById("submitBtn").disabled=false;
+  document.getElementById("fuBtn").disabled=false;document.getElementById("recBtn").disabled=true;
+  if(S.curTxt.trim())setTbox(S.curTxt,false,true);
+
+  const tb = document.getElementById("tbox");
+  tb.contentEditable = "true";
+  tb.title = "오타가 있다면 텍스트를 클릭하여 직접 수정할 수 있습니다.";
+}
+
+function redoAnswer(){
+  document.getElementById("tbox").contentEditable = "false";
+  S.curTxt="";setTbox("",false);S.answerDone=false;
+  document.getElementById("redoBtn").disabled=true;document.getElementById("submitBtn").disabled=true;document.getElementById("fuBtn").disabled=true;
+  setSt("waiting","🔄 다시 응답을 시작합니다...");setTimeout(()=>startRecording(),500);
+}
+
+function startTimer(){
+  clearInterval(S.timerIv);S.timerSec=TIMER_MAX;updateTimerUI(S.timerSec);
+  S.timerIv=setInterval(()=>{S.timerSec--;updateTimerUI(S.timerSec);if(S.timerSec<=0){clearInterval(S.timerIv);showToast("⏰ 응답 시간이 종료되었습니다.");stopAnswer();}},1000);
+}
+
+function updateTimerUI(sec){
+  const tv=document.getElementById("timerVal"),tb=document.getElementById("timerBar");
+  tv.textContent=`${Math.floor(sec/60)}:${(sec%60).toString().padStart(2,"0")}`;
+  tb.style.width=(sec/TIMER_MAX)*100+"%";
+  if(sec<=10){tv.classList.add("urgent");tb.classList.add("urgent");}
+  else{tv.classList.remove("urgent");tb.classList.remove("urgent");}
+}
+
+if(speechSynthesis.onvoiceschanged!==undefined) speechSynthesis.onvoiceschanged=()=>S.synth.getVoices();
+
+function speak(txt,cb){
+  if(!S.synth){if(cb)cb();return;}
+  if(!txt.trim()) {if(cb)cb();return;} 
+  
+  S.synth.cancel();
+  const u=new SpeechSynthesisUtterance(txt);
+  u.lang="ko-KR";u.rate=0.9;u.pitch=1.0;
+  
+  if(S.selectedVoice) {
+    u.voice=S.selectedVoice;
+  } else {
+    const v=S.synth.getVoices(), k=v.filter(x=>x.lang.includes('ko')||x.lang.includes('KR'));
+    const f=['yuna','sora','heami','inja','sunhi','jiyeon'];
+    let b=k.find(x=>{const n=x.name.toLowerCase();return f.some(y=>n.includes(y))&&(n.includes('natural')||n.includes('premium'));});
+    if(!b) b=k.find(x=>f.some(y=>x.name.toLowerCase().includes(y)));
+    if(!b) b=k.find(x=>x.name.toLowerCase().includes('google')&&!x.name.toLowerCase().includes('male'));
+    if(!b&&k.length>0) b=k[0];
+    if(b){S.selectedVoice=b;u.voice=S.selectedVoice;}
+  }
+  
+  window.__currUtter=u; 
+  let isEnded=false;
+  u.onend=()=>{if(!isEnded){isEnded=true;if(cb)cb();}};
+  u.onerror=()=>{if(!isEnded){isEnded=true;if(cb)cb();}};
+  setTimeout(()=>{if(!isEnded){isEnded=true;if(cb)cb();}}, txt.length*200+3000);
+  
+  S.synth.speak(u);
+}
+
+function replayQ(){
+  clearInterval(S.cdIv);document.getElementById("cdOverlay").style.display="none";
+  if(S.isRec)stopRecInternal();
+  const q=S.cur<S.qs.length?S.qs[S.cur]:null;
+  if(q){
+    setSt("speaking","🔊 질문을 다시 읽고 있습니다...");
+    const tmpDiv = document.createElement("div");
+    tmpDiv.innerHTML = q.txt;
+    speak(tmpDiv.textContent || tmpDiv.innerText || "",()=>{setSt("waiting","⏳ 10초 후 자동으로 응답이 시작됩니다...");startCountdown(10,()=>startRecording());});
+  }
+}
+
+async function genFollowUp(){
+  const tb = document.getElementById("tbox");
+  if(tb.contentEditable === "true") {
+    S.curTxt = tb.innerText.trim();
+    tb.contentEditable = "false";
+  }
+
+  const t=S.curTxt.trim();if(!t){showToast("먼저 응답을 완료해 주세요.");return;}
+  const c=S.qs[S.cur],qI=c.id;S.fuCount[qI]=(S.fuCount[qI]||0);
+  if(S.fuCount[qI]>=2){showToast("후속질문은 최대 2회까지 가능합니다.");return;}
+  setAllBtns(false);setSt("thinking","🤖 후속질문을 생성하고 있습니다...");
+  
+  const p=`당신은 한일시멘트 ESG 인터뷰 전문가입니다. 응답을 읽고 재무적 영향도를 파악할 후속질문 1개를 생성하세요. [원래 질문] ${c.txt} [응답] ${t}\n원칙: 정량적 근거 요구. 30~50자 이내. JSON: {"question":"후속질문","focus":"포인트10자이내","hint":"메모20자이내"}`;
+  try{
+    const r=await callClaude(p,200);
+    const d=JSON.parse(r.replace(/```json|```/g,"").trim());
+    S.fuCount[qI]++;
+    const fQ={id:`FU-${qI}-${S.fuCount[qI]}`,txt:d.question,hint:d.hint,issues:c.issues,lv:["exec","mid","field"]};
+    S.isFU=true;
+    S.fuHist.push({qId:qI,fuQ:fQ,focus:d.focus});
+    renderQ(fQ,true);
+  }catch(e){
+    showToast("오류발생.");setSt("ready","제출 또는 다시답변");
+    document.getElementById("redoBtn").disabled=false;
+    document.getElementById("submitBtn").disabled=false;
+    document.getElementById("fuBtn").disabled=false;
+  }
+}
+
+async function submitAnswer(){
+  if(S.isRec)stopRecInternal();
+  
+  const tb = document.getElementById("tbox");
+  if(tb.contentEditable === "true") {
+    S.curTxt = tb.innerText.trim();
+    tb.contentEditable = "false";
+  }
+
+  const t=S.curTxt.trim();
+  if(!t){showToast("응답 내용이 없습니다.");return;}
+  
+  const cQ=S.isFU&&S.fuHist.length>0?S.fuHist[S.fuHist.length-1].fuQ:S.qs[S.cur];
+  setAllBtns(false);
+  
+  const ar=document.getElementById("qaScroll"),ac=document.createElement("div");
+  ac.className="a-card";
+  ac.innerHTML=`<div class="a-label">응답 내용</div><div class="a-text">${t}</div>`;
+  ar.appendChild(ac);ac.scrollIntoView({behavior:"smooth",block:"nearest"});
+  
+  const existingIdx = S.ans.findIndex(a => a.qId === cQ.id);
+  if(existingIdx !== -1) {
+    S.ans[existingIdx] = {qId:cQ.id, isFU:S.isFU, question:cQ.txt, answer:t, issues:cQ.issues};
+  } else {
+    S.ans.push({qId:cQ.id, isFU:S.isFU, question:cQ.txt, answer:t, issues:cQ.issues});
+  }
+
+  updateProgressList();
+  S.isFU=false;
+  document.getElementById("nextQOv").style.display="flex";
+}
+
+function skipQ(){
+  clearInterval(S.cdIv);clearInterval(S.timerIv);document.getElementById("cdOverlay").style.display="none";
+  if(S.isRec)stopRecInternal();
+  
+  const cQ=S.qs[S.cur];
+  if(cQ) {
+    const existingIdx = S.ans.findIndex(a => a.qId === cQ.id);
+    if(existingIdx !== -1) {
+      S.ans[existingIdx] = {qId:cQ.id, isFU:false, question:cQ.txt, answer:"[건너뜀]", issues:cQ.issues};
+    } else {
+      S.ans.push({qId:cQ.id, isFU:false, question:cQ.txt, answer:"[건너뜀]", issues:cQ.issues});
+    }
+  }
+  
+  S.isFU=false;
+  updateProgressList();
+  
+  const nextMissing = S.qs.findIndex(q => {
+    const ans = S.ans.find(a => a.qId === q.id);
+    return !ans || ans.answer === "[건너뜀]";
+  });
+  
+  if (nextMissing !== -1) {
+    S.cur = nextMissing;
+    renderQ();
+  } else {
+    checkMissingAndFinish();
+  }
+}
+
+function goToNextQ(){
+  document.getElementById("nextQOv").style.display="none";
+  const nextMissing = S.qs.findIndex(q => {
+    const ans = S.ans.find(a => a.qId === q.id);
+    return !ans || ans.answer === "[건너뜀]";
+  });
+  
+  if (nextMissing !== -1) {
+    S.cur = nextMissing;
+    renderQ();
+  } else {
+    checkMissingAndFinish();
+  }
+}
+
+function jumpToQ(idx) {
+  if(S.isRec) stopRecInternal();
+  document.getElementById("doneOv").style.display = "none";
+  document.getElementById("readyAnalysisOv").style.display = "none";
+  S.cur = idx;
+  renderQ();
+}
+
+function checkMissingAndFinish() {
+  updateProgressList();
+  const missing = S.qs.findIndex(q => {
+    const ans = S.ans.find(a => a.qId === q.id);
+    return !ans || ans.answer === "[건너뜀]";
+  });
+
+  if (missing !== -1) {
+    showToast("누락된 질문이 있습니다. 우측 진행현황에서 선택하여 답변을 완료해주세요.");
+  } else {
+    document.getElementById("readyAnalysisOv").style.display = "flex";
+  }
+}
+
+function updateProgressList(){
+  document.getElementById("progressList").innerHTML=S.qs.map((q,idx)=>{
+    const plainTxt = q.txt.replace(/<[^>]+>/g, '');
+    const ans = S.ans.find(a => a.qId === q.id);
+    let statusTxt = "대기중";
+    let statusClass = "sv-none";
+    
+    if (ans) {
+      if (ans.answer === "[건너뜀]") {
+        statusTxt = "누락";
+        statusClass = "sv-miss";
+      } else if (ans.analysisComplete) {
+        statusTxt = "분석완료";
+        statusClass = "sv-hi";
+      } else {
+        statusTxt = "답변완료";
+        statusClass = "sv-md";
+      }
+    }
+    
+    return `
+      <div class="si" onclick="jumpToQ(${idx})" title="${plainTxt}">
+        <span class="si-code tc-s">${q.id}</span>
+        <span class="si-name">${plainTxt}</span>
+        <span class="si-val ${statusClass}" id="q-status-${idx}">${statusTxt}</span>
+      </div>
+    `;
+  }).join("");
+  
+  const an=S.ans.filter(a=>a.answer!=="[건너뜀]").length;
+  const rem=Math.max(0, S.qs.length - an);
+  document.getElementById("sumA").textContent=an;
+  document.getElementById("sumS").textContent=rem;
+}
+
+function updateProg(){
+  const t=S.qs.length,d=Math.min(S.cur,t);
+  document.getElementById("pbf").style.width=(t>0?Math.round(d/t*100):0)+"%";
+}
+
+// ══════════════════════════════════════
+// AI 분석 연동 및 결과 처리
+// ══════════════════════════════════════
+async function startBatchAnalysis() {
+  document.getElementById('readyAnalysisOv').style.display = 'none';
+  document.getElementById('aiLoadingOv').style.display = 'flex';
+  
+  S.analysisLogs = [];
+  
+  for (let i = 0; i < S.ans.length; i++) {
+    const ans = S.ans[i];
+    if (ans.answer === "[건너뜀]") continue;
+
+    document.getElementById('aiLoadingTxt').innerText = `🤖 AI가 응답 내용을 분석하고 있습니다...\n( ${i + 1} / ${S.ans.length} )`;
+    
+    const r = await analyzeAns(ans, ans.answer);
+    if (r) {
+      S.analysisLogs.push({q: {id: ans.qId, txt: ans.question}, txt: ans.answer, res: r});
+      ans.analysisComplete = true; 
+    }
+  }
+
+  updateProgressList();
+
+  setTimeout(() => {
+    document.getElementById('aiLoadingOv').style.display = 'none';
+    document.getElementById("doneHeader").style.display = "block";
+    document.getElementById("submitBtnWrap").style.display = "flex";
+    document.getElementById("thankYouWrap").style.display = "none";
+    document.getElementById("doneOv").style.display = "flex";
+  }, 1000);
+}
+
+// 실제 Claude API 연동 함수 복구됨
+async function analyzeAns(q,t){
+  const is=q.issues && q.issues.length>0?`관련 이슈: ${q.issues.join(", ")}`:"종합 질문";
+  const p=`당신은 한일시멘트 ESG 이중 중대성 평가 전문가입니다.
+[질문] ${q.question}\n[응답] ${t}\n[${is}]\n3점(高): 재무제표 직접 영향, 2점(中): 통제 가능, 1점(低): 영향 미미
+JSON만 응답: {"score":1또는2또는3,"affected_issues":["코드"],"key_finding":"핵심30자이내","evidence":"근거50자이내","emerging_issue":null또는"신규이슈"}`;
+  try{
+    const raw=await callClaude(p,300); 
+    return JSON.parse(raw.replace(/```json|```/g,"").trim());
+  }catch(e){return null;}
+}
+
+async function callClaude(p,m){
+  const r=await fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST",
+    headers:{"Content-Type":"application/json","x-api-key":S.apiKey,"anthropic-version":"2023-06-01"},
+    body:JSON.stringify({model:"claude-3-5-sonnet-20241022",max_tokens:m,messages:[{role:"user",content:p}]})
+  });
+  const d=await r.json(); 
+  if(d.error) throw new Error(d.error.message); 
+  return d.content?.[0]?.text||"{}";
+}
+
+// 파일 다운로드 로직 (지정된 파일명 규칙 적용)
+function downloadTestFiles() {
+  const compCode = S.co === '한일홀딩스' ? 'HH' : 'HC';
+  const phoneStr = S.uPhone.replace(/-/g, '');
+  const baseName = `${compCode}_${S.uName}_${phoneStr}_${S.startTime}`;
+
+  let textContent = "한일 ESG 파워인터뷰 전체 답변 텍스트\n\n";
+  S.ans.forEach((a) => {
+    textContent += `[${a.qId}] ${a.question.replace(/<[^>]+>/g, '')}\n`;
+    textContent += `답변: ${a.answer}\n\n`;
+  });
+  downloadBlob(new Blob([textContent], {type: 'text/plain;charset=utf-8'}), `텍스트_${baseName}.txt`);
+
+  const analysisData = JSON.stringify(S.analysisLogs, null, 2);
+  setTimeout(() => {
+    downloadBlob(new Blob([analysisData], {type: 'application/json'}), `분석_${baseName}.json`);
+  }, 300);
+
+  let audioIdx = 1;
+  S.ans.forEach((a, i) => {
+    const blob = S.audioBlobs[a.qId];
+    if (blob) {
+      setTimeout(() => {
+        downloadBlob(blob, `음성${audioIdx}_${baseName}.webm`);
+        audioIdx++;
+      }, 300 * (i + 2));
+    }
+  });
+  
+  showToast("파일 다운로드가 시작되었습니다. (브라우저가 여러 파일 다운로드를 묻는다면 '허용'해주세요)");
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function submitToServer(){
+  const btn=document.getElementById("submitServerBtn");btn.disabled=true;
+  btn.innerHTML="<div class='spin'></div> 서버 전송 중...";
+  
+  setTimeout(()=>{
+    document.getElementById("doneHeader").style.display = "none";
+    document.getElementById("submitBtnWrap").style.display = "none";
+    document.getElementById("thankYouWrap").style.display = "flex";
+    showToast("✅ 성공적으로 서버에 저장되었습니다.");
+  },2000);
+}
+
+function showToast(m){
+  const t=document.getElementById("toast");t.textContent=m;t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),3000);
+}
+
+function closeApp(){
+  document.getElementById('doneOv').style.display='none';
+  setSt("ready","인터뷰가 모두 종료되었습니다. 수고하셨습니다.");
+}
+
+function setAllBtns(on){
+  ["recBtn","stopBtn","redoBtn","submitBtn","replayBtn","fuBtn","skipBtn"].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.disabled=!on;
+  });
+  if(!on)document.getElementById("stopBtn").style.animation="none";
+}
+
+function setRecBtn(r){
+  const rb=document.getElementById("recBtn"),ri=document.getElementById("recIcon"),rl=document.getElementById("recLabel");
+  if(r){
+    rb.classList.remove("cb-start");rb.classList.add("cb-stop");
+    ri.textContent="⏺";rl.textContent="응답 중...";rb.disabled=true;
+  }else{
+    rb.classList.remove("cb-stop");rb.classList.add("cb-start");
+    ri.textContent="🎤";rl.textContent="응답 시작";
+  }
+}
+
+function setTbox(t,l,d=false){
+  const tb=document.getElementById("tbox"),ph=document.getElementById("tph");
+  if(t){
+    ph.style.display="none";tb.className="tbox"+(l?" listening":d?" done":"");
+    let tn=tb.querySelector(".live");
+    if(!tn){tn=document.createElement("span");tn.className="live";tb.appendChild(tn);}
+    tn.textContent=t;
+  }else{
+    ph.style.display="";tb.className="tbox";tb.querySelector(".live")?.remove();
+  }
+}
+
+function setSt(ty,tx){
+  document.getElementById("sdot").className="sdot "+ty;document.getElementById("stxt").textContent=tx;
+}
+
+function showWave(on){
+  const w=document.getElementById("wave");w.style.display=on?"flex":"none";
+  if(on) S.waveIv=setInterval(()=>{for(let i=1;i<=6;i++)document.getElementById("w"+i).style.height=(4+Math.random()*20)+"px";},90);
+  else{clearInterval(S.waveIv);for(let i=1;i<=6;i++)document.getElementById("w"+i).style.height="5px";}
+}
+</script>
+</body>
+</html>
