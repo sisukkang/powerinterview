@@ -21,7 +21,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#f1f5f9;min-height:100vh}
 .start-btn{width:100%;padding:.88rem;background:#1a56db;color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:background 0.2s}
 .start-btn:hover{background:#1d4ed8}
 
-/* 관리자 버튼 및 에디터 UI 고도화 */
+/* 관리자 버튼 및 에디터 UI */
 .admin-btn{position:absolute;top:20px;right:20px;background:none;border:none;cursor:pointer;font-size:1.2rem;color:#94a3b8;transition:color 0.2s}
 .admin-btn:hover{color:#0f1f3d}
 .admin-q-row { display:flex; flex-direction:column; gap:8px; background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #e2e8f0; }
@@ -73,10 +73,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#f1f5f9;min-height:100vh}
 .qnum{font-family:'DM Mono',monospace;font-size:.78rem;color:#94a3b8;font-weight:500}
 
 .q-card{background:#fff;border-radius:12px;padding:1.35rem 1.5rem;border:1px solid #e2e8f0;border-left:5px solid #3b82f6}
-.q-card.followup{border-left-color:#7c3aed;background:#faf5ff}
-.q-card.dimmed{opacity:.45}
 .q-part{font-size:.9rem;font-weight:700;color:#3b82f6;margin-bottom:.6rem;display:flex;align-items:center;gap:6px;}
-.q-card.followup .q-part{color:#7c3aed}
 .q-text{font-size:1.02rem;line-height:1.82;color:#0f172a}
 
 .a-card{background:#f0fdf4;border-radius:12px;padding:1.15rem 1.35rem;border:1px solid #bbf7d0;border-left:5px solid #059669; margin-bottom:1rem;}
@@ -164,6 +161,11 @@ body{font-family:'Noto Sans KR',sans-serif;background:#f1f5f9;min-height:100vh}
 .done-box{background:#fff;border-radius:16px;padding:2.25rem;max-width:560px;width:92%;text-align:center;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 10px 25px rgba(0,0,0,0.5)}
 .done-box h2{font-size:1.4rem;color:#0f1f3d;margin-bottom:.4rem}
 .done-box p{font-size:.87rem;color:#64748b;margin-bottom:1.25rem;line-height:1.7}
+.done-grid{display:grid;grid-template-columns:repeat(1,1fr);gap:8px;margin-bottom:1.25rem;overflow-y:auto;flex:1;padding-right:5px;}
+.dgi{background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;padding:.8rem 1rem;text-align:left;font-size:.85rem;display:flex;justify-content:space-between;align-items:center;}
+.dgi .dc{font-family:'DM Mono',monospace;color:#3b82f6;font-size:.8rem;font-weight:bold;min-width:35px;}
+.dgi .dn{color:#0f172a;flex:1;margin-left:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dgi .ds{font-weight:700;color:#059669;}
 .done-btns{display:flex;gap:.65rem;justify-content:center;flex-wrap:wrap;flex-shrink:0;}
 .d-btn{padding:.7rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-size:.85rem;font-weight:600;font-family:'Noto Sans KR',sans-serif;transition:all 0.2s}
 .d-btn.p{background:#3b82f6;color:#fff}.d-btn.p:hover{background:#2563eb}
@@ -397,15 +399,14 @@ body{font-family:'Noto Sans KR',sans-serif;background:#f1f5f9;min-height:100vh}
           <button class="ctrl-btn cb-submit" id="submitBtn" onclick="submitAnswer()" disabled><span class="ci">✅</span><span class="cl">제출하기</span></button>
         </div>
         
-        <div class="btn-sub">
+        <div class="btn-sub" id="btnSubGroup" style="display:none;">
           <div class="btn-sub-group">
-            <button class="btn-xs" id="prevBtn" onclick="prevQ()" style="display:none;">⬅️ 이전 질문</button>
-            <button class="btn-xs" id="nextBtn" onclick="nextQ()" style="display:none;">다음 질문 ➡️</button>
+            <button class="btn-xs" id="prevBtn" onclick="prevQ()">⬅️ 이전 질문</button>
+            <button class="btn-xs" id="nextBtn" onclick="nextQ()">다음 질문 ➡️</button>
           </div>
           <div class="btn-sub-group">
-            <button class="btn-xs" id="replayBtn" onclick="replayQ()" disabled>🔊 다시 듣기</button>
-            <button class="btn-xs" id="skipBtn" onclick="skipQ()">건너뛰기</button>
-            <button class="btn-xs end-xs" id="endBtn" onclick="checkMissingAndFinish()" style="display:none; background:#059669; border-color:#059669; color:#fff;">✅ 최종 검토 완료</button>
+            <button class="btn-xs" id="replayBtn" onclick="replayQ()">🔊 다시 듣기</button>
+            <button class="btn-xs end-xs" id="endBtn" onclick="checkMissingAndFinish()" style="background:#059669; border-color:#059669; color:#fff;">✅ 최종 검토 완료 (AI 분석)</button>
           </div>
         </div>
 
@@ -415,7 +416,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#f1f5f9;min-height:100vh}
     <div class="right">
       <div class="rh"><h3><div class="ai-dot"></div>인터뷰 진행현황</h3></div>
       <div class="sc-sec">
-        <div class="sc-ttl" id="scTtl">진행 중...</div>
+        <div class="sc-ttl" id="scTtl">진행 중 (완료 후 이동 가능)</div>
         <div class="sc-list" id="progressList"></div>
       </div>
       <div class="summ">
@@ -645,7 +646,7 @@ const S={
   qs:[], cur:-1, ans:[], analysisLogs:[], startTime:"",
   recog:null, micReady:false, isRec:false, curTxt:"", sessId:"", apiKey:"",
   co:"", dept:"", ttl:"", uName:"", uPhone:"", uEmail:"",
-  sttSupported:true, isReviewMode:false, // 리뷰 모드 플래그 추가
+  sttSupported:true, isReviewMode:false, isSpeaking:false,
   waveIv:null, timerIv:null, cdIv:null, timerSec:60,
   synth:window.speechSynthesis, answerDone:false, selectedVoice:null,
   mediaRecorder:null, audioChunks:[], audioBlobs:{}
@@ -712,13 +713,14 @@ function acceptPrivacy(){
   document.getElementById("privacyOv").style.display="none";
   S.sessId="SI-"+Date.now().toString(36).toUpperCase();
   S.startTime = getFormattedDate(); 
-  S.isReviewMode = false; // 1회독 시작시 초기화
+  S.isReviewMode = false; 
   
   document.getElementById("sessId").textContent="SESSION: "+S.sessId;
   document.getElementById("startScreen").style.display="none";
   document.getElementById("app").style.display="flex";
   
   updateProgressList();
+  updateNavButtons();
   requestMicPermission(()=>{document.getElementById("readyOv").style.display="flex";});
 }
 
@@ -765,7 +767,7 @@ function initSTT(){
 }
 
 function renderQ(customQ = null){
-  const qs = customQ || (S.cur < S.qs.length ? S.qs[S.cur] : null);
+  const qs = customQ !== null ? S.qs[customQ] : (S.cur < S.qs.length ? S.qs[S.cur] : null);
   if(!qs){checkMissingAndFinish();return;}
   
   S.answerDone=false;S.curTxt="";setTbox("",false);
@@ -779,7 +781,7 @@ function renderQ(customQ = null){
   
   const existingAns = S.ans.find(ans => ans.qId === qs.id);
   
-  if (existingAns && existingAns.answer !== "[건너뜀]") {
+  if (existingAns) {
      document.getElementById("tbox").style.display = "none";
      const ac=document.createElement("div");
      ac.className="a-card";
@@ -809,48 +811,67 @@ function renderQ(customQ = null){
 
 // 🚨 네비게이션 제어 로직 (검토 모드에 따라 노출 변경)
 function updateNavButtons() {
+  const btnSubGroup = document.getElementById("btnSubGroup");
   if (S.isReviewMode) {
+    btnSubGroup.style.display = "flex";
     document.getElementById("prevBtn").style.display = S.cur > 0 ? "inline-block" : "none";
     document.getElementById("nextBtn").style.display = S.cur < S.qs.length - 1 ? "inline-block" : "none";
     document.getElementById("endBtn").style.display = "inline-block";
-    document.getElementById("skipBtn").style.display = "none"; 
+    document.getElementById("replayBtn").style.display = "inline-block";
     document.getElementById("scTtl").innerText = "자유롭게 클릭하여 문항 이동";
   } else {
-    document.getElementById("prevBtn").style.display = "none";
-    document.getElementById("nextBtn").style.display = "none";
-    document.getElementById("endBtn").style.display = "none";
-    document.getElementById("skipBtn").style.display = "inline-block";
+    btnSubGroup.style.display = "none"; // 정규 인터뷰 중에는 메뉴 숨김
     document.getElementById("scTtl").innerText = "진행 중 (완료 후 자유이동 가능)";
   }
 }
 
-function prevQ() {
-  if(S.isRec) stopRecInternal();
-  clearInterval(S.cdIv); document.getElementById("cdOverlay").style.display="none";
-  if (S.cur > 0) {
-      S.cur--;
-      renderQ();
+// 작성 중인 답변을 무시하고 이동할지 묻는 안전장치
+function checkUnsavedData() {
+  const tb = document.getElementById("tbox");
+  if (tb && tb.style.display !== "none" && S.curTxt.trim() !== "" && document.getElementById("submitBtn").disabled === false) {
+    return confirm("작성 중인 답변이 제출되지 않았습니다. 무시하고 이동하시겠습니까?");
   }
+  return true;
+}
+
+function prevQ() {
+  if (S.isRec || S.isSpeaking) {
+    showToast("현재 질문 읽기 또는 답변이 진행 중입니다. 완료 후 이동해주세요.");
+    return;
+  }
+  if (!checkUnsavedData()) return;
+  if(S.isRec) stopRecInternal();
+  if(S.synth) { S.synth.cancel(); S.isSpeaking = false; }
+  clearInterval(S.cdIv); document.getElementById("cdOverlay").style.display="none";
+  if (S.cur > 0) { S.cur--; renderQ(); }
 }
 
 function nextQ() {
-  if(S.isRec) stopRecInternal();
-  clearInterval(S.cdIv); document.getElementById("cdOverlay").style.display="none";
-  if (S.cur < S.qs.length - 1) {
-      S.cur++;
-      renderQ();
-  } else {
-      checkMissingAndFinish();
-  }
-}
-
-// 🚨 문항 클릭 직접 이동 제어 (검토 모드일 때만 허용)
-function jumpToQ(idx) {
-  if (!S.isReviewMode) {
-    showToast("모든 질문을 한 번씩 확인한 후에 자유롭게 이동할 수 있습니다.");
+  if (S.isRec || S.isSpeaking) {
+    showToast("현재 질문 읽기 또는 답변이 진행 중입니다. 완료 후 이동해주세요.");
     return;
   }
+  if (!checkUnsavedData()) return;
   if(S.isRec) stopRecInternal();
+  if(S.synth) { S.synth.cancel(); S.isSpeaking = false; }
+  clearInterval(S.cdIv); document.getElementById("cdOverlay").style.display="none";
+  if (S.cur < S.qs.length - 1) { S.cur++; renderQ(); }
+  else { checkMissingAndFinish(); }
+}
+
+function jumpToQ(idx) {
+  if (!S.isReviewMode) {
+    showToast("모든 질문을 한 번씩 완료한 후에 자유롭게 이동할 수 있습니다.");
+    return;
+  }
+  if (S.isRec || S.isSpeaking) {
+    showToast("현재 질문 읽기 또는 답변이 진행 중입니다. 완료 후 이동해주세요.");
+    return;
+  }
+  if (!checkUnsavedData()) return;
+
+  if(S.isRec) stopRecInternal();
+  if(S.synth) { S.synth.cancel(); S.isSpeaking = false; }
   clearInterval(S.cdIv); document.getElementById("cdOverlay").style.display="none";
   document.getElementById("doneOv").style.display = "none";
   document.getElementById("readyAnalysisOv").style.display = "none";
@@ -870,6 +891,7 @@ function skipCountdownAndStart(){
 
 function startRecording(){
   document.getElementById("tbox").contentEditable = "false";
+  if(S.synth) { S.synth.cancel(); S.isSpeaking = false; }
   if(!S.micReady){showToast("마이크 접근 권한이 필요합니다.");return;}
   
   navigator.mediaDevices.getUserMedia({audio:true}).then(stream => {
@@ -889,7 +911,7 @@ function startRecording(){
     if(S.sttSupported && S.recog) {
       try{S.recog.start();}catch(e){}
     } else {
-      setSt("listening","🎤 녹음 중... (실시간 자막 미지원 기기: 종료 후 직접 텍스트 입력 가능)");
+      setSt("listening","🎤 녹음 중... (실시간 자막 미지원 기기: 종료 후 텍스트 수정 가능)");
       setRecBtn(true);showWave(true);
       document.getElementById("stopBtn").disabled=false;
     }
@@ -926,6 +948,7 @@ function stopAnswer(){
 function redoAnswer(){
   document.getElementById("tbox").contentEditable = "false";
   S.curTxt="";setTbox("",false);S.answerDone=false;
+  if(S.synth) { S.synth.cancel(); S.isSpeaking = false; }
   
   const cQ=S.qs[S.cur];
   const existingIdx = S.ans.findIndex(a => a.qId === cQ.id);
@@ -952,9 +975,10 @@ if(speechSynthesis.onvoiceschanged!==undefined) speechSynthesis.onvoiceschanged=
 
 function speak(txt,cb){
   if(!S.synth){if(cb)cb();return;}
+  S.synth.cancel();
+  S.isSpeaking = false;
   if(!txt.trim()) {if(cb)cb();return;} 
   
-  S.synth.cancel();
   const u=new SpeechSynthesisUtterance(txt);
   u.lang="ko-KR";u.rate=0.95; 
   u.pitch=1.0;
@@ -979,15 +1003,26 @@ function speak(txt,cb){
   }
   
   window.__currUtter=u; 
+  S.isSpeaking = true;
   let isEnded=false;
-  u.onend=()=>{if(!isEnded){isEnded=true;if(cb)cb();}};
-  u.onerror=()=>{if(!isEnded){isEnded=true;if(cb)cb();}};
-  setTimeout(()=>{if(!isEnded){isEnded=true;if(cb)cb();}}, txt.length*250+3000); 
+  
+  const endFunc = () => {
+    if(!isEnded){
+      isEnded=true; 
+      S.isSpeaking=false; 
+      if(cb)cb();
+    }
+  };
+  
+  u.onend=endFunc;
+  u.onerror=endFunc;
+  setTimeout(endFunc, txt.length*250+3000); 
   
   S.synth.speak(u);
 }
 
 function replayQ(){
+  if(S.isRec || S.isSpeaking) return;
   clearInterval(S.cdIv);document.getElementById("cdOverlay").style.display="none";
   if(S.isRec)stopRecInternal();
   const q=S.cur<S.qs.length?S.qs[S.cur]:null;
@@ -999,9 +1034,9 @@ function replayQ(){
   }
 }
 
-// 답변 제출 및 팝업 플로우 제어
 async function submitAnswer(){
   if(S.isRec)stopRecInternal();
+  if(S.synth) { S.synth.cancel(); S.isSpeaking = false; }
   
   const tb = document.getElementById("tbox");
   if(tb && tb.contentEditable === "true") {
@@ -1014,6 +1049,7 @@ async function submitAnswer(){
   
   const cQ=S.qs[S.cur];
   setAllBtns(false);
+  document.getElementById("submitBtn").disabled = true; // 중복 제출 방지
   
   const ar=document.getElementById("qaScroll"),ac=document.createElement("div");
   ac.className="a-card";
@@ -1031,31 +1067,6 @@ async function submitAnswer(){
   document.getElementById("nextQOv").style.display="flex";
 }
 
-function skipQ(){
-  clearInterval(S.cdIv);clearInterval(S.timerIv);document.getElementById("cdOverlay").style.display="none";
-  if(S.isRec)stopRecInternal();
-  
-  const cQ=S.qs[S.cur];
-  if(cQ) {
-    const existingIdx = S.ans.findIndex(a => a.qId === cQ.id);
-    if(existingIdx !== -1) {
-      S.ans[existingIdx] = {qId:cQ.id, question:cQ.txt, answer:"[건너뜀]", issues:cQ.issues};
-    } else {
-      S.ans.push({qId:cQ.id, question:cQ.txt, answer:"[건너뜀]", issues:cQ.issues});
-    }
-  }
-  
-  updateProgressList();
-  
-  if (!S.isReviewMode) {
-    S.cur++;
-    if (S.cur < S.qs.length) renderQ();
-    else checkMissingAndFinish();
-  } else {
-    checkMissingAndFinish();
-  }
-}
-
 function goToNextQ(){
   document.getElementById("nextQOv").style.display="none";
   if (!S.isReviewMode) {
@@ -1063,7 +1074,6 @@ function goToNextQ(){
     if (S.cur < S.qs.length) renderQ();
     else checkMissingAndFinish();
   } else {
-    // 검토 모드일 땐 바로 다음 누락 질문 검색
     const nextMissing = S.qs.findIndex(q => {
       const ans = S.ans.find(a => a.qId === q.id);
       return !ans || ans.answer === "[건너뜀]";
@@ -1077,9 +1087,8 @@ function goToNextQ(){
   }
 }
 
-// 🚨 누락 질문 추적 로직 연동
 function checkMissingAndFinish() {
-  S.isReviewMode = true; // 모든 질문 1바퀴 돌면 검토모드 활성화
+  S.isReviewMode = true; 
   updateProgressList();
   updateNavButtons();
 
@@ -1089,7 +1098,7 @@ function checkMissingAndFinish() {
   });
 
   if (missing !== -1) {
-    showToast("누락되거나 건너뛴 질문이 있습니다. 해당 질문으로 자동 이동합니다.");
+    showToast("누락되거나 응답하지 않은 질문이 있습니다. 해당 질문으로 자동 이동합니다.");
     S.cur = missing;
     renderQ();
   } else {
@@ -1153,7 +1162,7 @@ async function startBatchAnalysis() {
     const ans = S.ans[i];
     if (ans.answer === "[건너뜀]") continue;
 
-    document.getElementById('aiLoadingTxt').innerText = `🤖 AI가 응답 내용을 분석하고 있습니다...\n( ${i + 1} / ${S.ans.length} )`;
+    document.getElementById('aiLoadingTxt').innerText = `🤖 AI가 전체 응답 내용을 분석하고 있습니다...\n( ${i + 1} / ${S.ans.length} )`;
     
     const r = await analyzeAns(ans, ans.answer);
     if (r) {
@@ -1173,6 +1182,7 @@ async function startBatchAnalysis() {
   }, 1000);
 }
 
+// 실제 Claude API 연동
 async function analyzeAns(q,t){
   const is=q.issues && q.issues.length>0?`관련 이슈: ${q.issues.join(", ")}`:"종합 질문";
   const p=`당신은 한일시멘트 ESG 이중 중대성 평가 전문가입니다.
@@ -1195,7 +1205,7 @@ async function callClaude(p,m){
   return d.content?.[0]?.text||"{}";
 }
 
-// 🚨 다운로드 로직 (CSV 포함)
+// 파일 다운로드 로직
 function downloadTestFiles() {
   const baseName = getBaseFileName();
 
@@ -1207,12 +1217,12 @@ function downloadTestFiles() {
   });
   downloadBlob(new Blob([textContent], {type: 'text/plain;charset=utf-8'}), `텍스트_${baseName}.txt`);
 
-  // 2. AI 분석 CSV (엑셀 호환)
+  // 2. AI 분석 CSV
   setTimeout(() => {
     exportAnalysisCSV(baseName);
   }, 300);
 
-  // 3. 음성 파일 
+  // 3. 음성 파일
   let audioIdx = 1;
   S.ans.forEach((a, i) => {
     const blob = S.audioBlobs[a.qId];
